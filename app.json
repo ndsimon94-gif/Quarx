@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Quarx",
+    "slug": "quarx",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "quarx",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#07080f",
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "Quarx",
+      "shortName": "Quarx",
+      "themeColor": "#07080f",
+      "backgroundColor": "#07080f"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#07080f",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
