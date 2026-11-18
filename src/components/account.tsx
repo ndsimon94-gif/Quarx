@@ -59,10 +59,11 @@ export function SignUpForm({ onDone }: { onDone?: () => void }) {
           Check your email
         </T>
         <T v="body" color={C.textDim} style={{ marginBottom: 18 }}>
-          We sent a sign-in code to {email.trim()}. It may take a minute — check spam if you don’t see it.
+          We sent a sign-in link to {email.trim()}. Open it on this device and you’ll land back here, signed
+          in. It may take a minute — check spam if you don’t see it.
         </T>
         <Field
-          label="Code"
+          label="Or enter the code from the email"
           value={code}
           onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 8))}
           placeholder="123456"
@@ -120,7 +121,7 @@ export function SignUpForm({ onDone }: { onDone?: () => void }) {
         autoCorrect={false}
         keyboardType="email-address"
         autoComplete="email"
-        hint="We’ll email you a code to sign in. No passwords. Your email is never shown."
+        hint="We’ll email you a link to sign in — no passwords. Your email is never shown."
       />
       {mode === 'join' ? (
         <>
@@ -169,7 +170,7 @@ export function SignUpForm({ onDone }: { onDone?: () => void }) {
         </T>
       ) : null}
       <Button
-        title={busy ? 'Sending…' : 'Email me a code'}
+        title={busy ? 'Sending…' : 'Email me a sign-in link'}
         icon="mail-outline"
         disabled={!valid || busy}
         onPress={send}

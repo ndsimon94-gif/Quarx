@@ -378,6 +378,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
+          // Where the email's sign-in link brings you back to (web).
+          emailRedirectTo:
+            typeof window !== 'undefined' && window.location ? `${window.location.origin}/me` : undefined,
           shouldCreateUser: Boolean(username),
           data: username ? { display_name: displayName, username, default_mode: defaultMode } : undefined,
         },
