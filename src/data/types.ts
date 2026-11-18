@@ -65,6 +65,14 @@ export type Theory = {
   needsReview?: boolean;
   /** Written by Quarx to seed a new question */
   starter?: boolean;
+  /** From the database: community rating summary */
+  ratingAvg?: number;
+  ratingCount?: number;
+  commentCount?: number;
+  /** 'dmz_review' while new theories wait for the DMZ */
+  status?: 'live' | 'dmz_review';
+  /** The signed-in person wrote this */
+  mine?: boolean;
 };
 
 export type Voice = {
@@ -81,6 +89,7 @@ export type Comment = {
   author: Author;
   date: string;
   body: string;
+  mine?: boolean;
 };
 
 /** What stood out about a theory — mirrors the DMZ's original criteria */

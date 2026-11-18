@@ -185,7 +185,15 @@ export function TheoryCard({
         <AuthorLine author={theory.author} date={theory.date} small />
         <Row gap={12}>
           {theory.dmzPick ? <Pill text="DMZ pick" color={C.dmz} icon="star" /> : null}
-          {mine ? (
+          {theory.status === 'dmz_review' ? <Pill text="Awaiting DMZ" color={C.dmz} /> : null}
+          {theory.ratingCount ? (
+            <Row gap={3}>
+              <Icon name="star" size={13} color={mine ? C.ember : C.textDim} />
+              <Text style={styles.meta}>
+                {theory.ratingAvg?.toFixed(1)} ({theory.ratingCount})
+              </Text>
+            </Row>
+          ) : mine ? (
             <Row gap={3}>
               <Icon name="star" size={13} color={C.ember} />
               <Text style={styles.meta}>{mine.stars}</Text>

@@ -61,7 +61,53 @@ export function Shell({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const { profile, points } = useStore();
   const hideTabs = pathname.startsWith('/add');
+  return (
+    <View style={{ flex: 1 }}>
+      <Frame
+        wide={wide}
+        pathname={pathname}
+        insets={insets}
+        profile={!!profile}
+        points={points}
+        hideTabs={hideTabs}>
+        {children}
+      </Frame>
+      <NoticeBanner bottom={wide ? 24 : insets.bottom + 92} />
+    </View>
+  );
+}
 
+function NoticeBanner({ bottom }: { bottom: number }) {
+  const { notice, clearNotice } = useStore();
+  if (!notice) return null;
+  return (
+    <View style={[styles.notice, { bottom }]} accessibilityRole="alert">
+      <Icon name="alert-circle-outline" size={18} color={C.ember} />
+      <Text style={styles.noticeText}>{notice}</Text>
+      <Text onPress={clearNotice} style={[styles.noticeText, { color: C.ember, fontFamily: F.uiSemi }]}>
+        Dismiss
+      </Text>
+    </View>
+  );
+}
+
+function Frame({
+  wide,
+  pathname,
+  insets,
+  profile,
+  points,
+  hideTabs,
+  children,
+}: {
+  wide: boolean;
+  pathname: string;
+  insets: { bottom: number };
+  profile: boolean;
+  points: number;
+  hideTabs: boolean;
+  children: ReactNode;
+}) {
   if (wide) {
     return (
       <View style={{ flex: 1 }}>
@@ -142,6 +188,22 @@ function Tab({ item, on }: { item: NavItem; on: boolean }) {
 }
 
 const styles = StyleSheet.create({
+  notice: {
+    position: 'absolute',
+    alignSelf: 'center',
+    maxWidth: 560,
+    marginHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.emberLine,
+    backgroundColor: '#1a1410',
+  },
+  noticeText: { fontFamily: F.ui, fontSize: 13.5, color: C.text, flexShrink: 1 },
   topbar: {
     borderBottomWidth: 1,
     borderBottomColor: C.line,

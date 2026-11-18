@@ -7,13 +7,13 @@ import { Button, Card, Empty, Icon, Page, Pill, Row, Section, Segmented, T, Tap 
 import { C } from '@/constants/theme';
 import { catalog } from '@/data/catalog';
 import { getDomain } from '@/data/domains';
-import { excerpt, formatDate, plural } from '@/lib/format';
+import { formatDate, plural } from '@/lib/format';
 import { sortTheories, useStore, type SortMode } from '@/lib/store';
 
 export default function QuestionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const question = catalog.getQuestion(id);
-  const { allTheories, ratings, reviewDecisions } = useStore();
+  const { allTheories, ratings, voices: allVoices } = useStore();
   const [sort, setSort] = useState<SortMode>('top');
 
   const theories = useMemo(
@@ -35,17 +35,7 @@ export default function QuestionScreen() {
   }
 
   const domain = getDomain(question.domainId);
-  const voices = [
-    ...catalog.voicesFor(question.id),
-    // Migrated posts the DMZ moved to Voices
-    ...catalog.theories
-      .filter((t) => t.questionId === question.id && reviewDecisions[t.id] === 'voice')
-      .map((t) => ({
-        id: t.id,
-        author: t.author.display,
-        excerpt: excerpt(t.paragraphs, 48),
-      })),
-  ];
+  const voices = allVoices.filter((v) => v.questionId === question.id);
   const siblings = domain
     ? catalog
         .questionsInDomain(domain.id)

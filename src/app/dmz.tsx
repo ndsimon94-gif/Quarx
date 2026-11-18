@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { JoinPrompt } from '@/components/quarx';
 import { Button, Card, Grid, Icon, Page, Pill, Row, Section, T, Tap, type IconName } from '@/components/ui';
@@ -53,7 +53,7 @@ const POWERS: { icon: IconName; title: string; body: string }[] = [
 ];
 
 export default function Dmz() {
-  const { profile, points, isDmz, myTheories, comments, dmzPreview, setDmzPreview } = useStore();
+  const { profile, points, isDmz, myTheories, comments } = useStore();
   const pct = Math.min(1, points / POINTS.dmzThreshold);
 
   const leaders = useMemo(
@@ -91,11 +91,7 @@ export default function Dmz() {
                 </T>
               </View>
               {isDmz ? (
-                <Pill
-                  text={dmzPreview && points < POINTS.dmzThreshold ? 'DMZ (preview)' : 'Dedicated Mind'}
-                  color={C.dmz}
-                  icon="sparkles"
-                />
+                <Pill text="Dedicated Mind" color={C.dmz} icon="sparkles" />
               ) : (
                 <T v="small">{POINTS.dmzThreshold - points} to go</T>
               )}
@@ -104,8 +100,8 @@ export default function Dmz() {
               <View style={[styles.barFill, { width: `${pct * 100}%` }]} />
             </View>
             <T v="small">
-              {plural(myTheories.length, 'theory', 'theories')} × 5 · {plural(comments.length, 'response')} ×
-              1
+              {plural(myTheories.length, 'theory', 'theories')} × 5 ·{' '}
+              {plural(comments.filter((c) => c.mine).length, 'response')} × 1
             </T>
             {!isDmz ? (
               <Row gap={10} style={{ marginTop: 6, flexWrap: 'wrap' }}>
@@ -191,41 +187,21 @@ export default function Dmz() {
       </Section>
 
       {isDmz ? <ReviewQueue /> : null}
-
-      <Card style={{ marginTop: 40, gap: 10 }}>
-        <Row style={{ justifyContent: 'space-between' }} gap={12}>
-          <View style={{ flex: 1 }}>
-            <T v="ui" style={{ fontFamily: F.uiSemi }}>
-              Preview as a DMZ member
-            </T>
-            <T v="small">
-              Prototype only — unlocks the review queue so you can see what Dedicated Minds will do.
-            </T>
-          </View>
-          <Switch
-            value={dmzPreview}
-            onValueChange={setDmzPreview}
-            trackColor={{ true: C.dmz, false: C.lineStrong }}
-            thumbColor={C.text}
-          />
-        </Row>
-      </Card>
     </Page>
   );
 }
 
 function ReviewQueue() {
-  const { allTheories, decideReview, reviewDecisions } = useStore();
+  const { allTheories, decideReview } = useStore();
   const queue = allTheories.filter((t) => t.needsReview);
   const [shown, setShown] = useState(5);
-  const decided = Object.keys(reviewDecisions).length;
 
   return (
     <Section label="DMZ review queue" title={`${plural(queue.length, 'piece')} awaiting review`}>
       <T v="body" color={C.textDim} style={{ marginTop: -4, marginBottom: 16, maxWidth: 680 }}>
         These migrated posts may have been republished from articles or books. Keep the ones written by
-        members, move published work to “Voices” (a short excerpt shown as further reading), or remove it.{' '}
-        {decided ? `${decided} decided so far.` : ''}
+        members, move published work to “Voices” (a short excerpt shown as further reading), or remove
+        it.{' '}
       </T>
       <View style={{ gap: 12 }}>
         {queue.slice(0, shown).map((t) => (

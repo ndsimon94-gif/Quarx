@@ -23,6 +23,7 @@ export default function AddTheory() {
   const [body, setBody] = useState('');
   const [changeMind, setChangeMind] = useState('');
   const [mode, setMode] = useState<IdentityMode>(profile?.defaultMode ?? 'username');
+  const [posting, setPosting] = useState(false);
 
   const question = catalog.getQuestion(questionId)!;
   const domain = getDomain(question.domainId);
@@ -109,19 +110,12 @@ export default function AddTheory() {
             <Button
               title={`Post theory · +${POINTS.theory} Quark Points`}
               icon="send-outline"
-              disabled={!valid}
-              onPress={() => {
-                const t = addTheory({
-                  questionId,
-                  thesis,
-                  body,
-                  changeMind,
-                  mode,
-                });
-                router.replace({
-                  pathname: '/theory/[id]',
-                  params: { id: t.id },
-                });
+              disabled={!valid || posting}
+              onPress={async () => {
+                setPosting(true);
+                const t = await addTheory({ questionId, thesis, body, changeMind, mode });
+                setPosting(false);
+                if (t) router.replace({ pathname: '/theory/[id]', params: { id: t.id } });
               }}
             />
             <Button title="Cancel" kind="ghost" onPress={close} />

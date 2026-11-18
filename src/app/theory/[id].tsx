@@ -139,6 +139,11 @@ export default function TheoryReader() {
           <AuthorLine author={theory.author} date={theory.date} />
           <Row gap={8}>
             {theory.dmzPick ? <Pill text="DMZ pick" color={C.dmz} icon="star" /> : null}
+            {theory.ratingCount ? (
+              <T v="small">
+                ★ {theory.ratingAvg?.toFixed(1)} · {plural(theory.ratingCount, 'rating')}
+              </T>
+            ) : null}
             <T v="small">{readingMinutes(theory.paragraphs)} min read</T>
           </Row>
         </Row>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 
 import { SignUpForm } from '@/components/account';
 import { TheoryCard } from '@/components/quarx';
@@ -23,7 +23,6 @@ export default function Me() {
     getTheory,
     updateProfile,
     signOut,
-    resetAll,
   } = store;
   const [tab, setTab] = useState<Tab>('theories');
 
@@ -188,18 +187,6 @@ export default function Me() {
       <Section label="Account">
         <Row gap={10} style={{ flexWrap: 'wrap' }}>
           <Button title="Sign out" kind="secondary" small onPress={signOut} />
-          <Button
-            title="Reset prototype data"
-            kind="ghost"
-            small
-            onPress={() => {
-              const ok =
-                Platform.OS === 'web'
-                  ? window.confirm('Erase your account and activity on this device?')
-                  : true;
-              if (ok) resetAll();
-            }}
-          />
         </Row>
       </Section>
     </Page>
