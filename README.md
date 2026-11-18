@@ -55,6 +55,13 @@ npm run lint
 
 `dist/` is a single-page app: configure the host to serve `index.html` for every path.
 
+### Hosting (Vercel)
+
+The site is hosted on Vercel, connected to this GitHub repo. `vercel.json` holds the build settings, so every push
+to the default branch redeploys automatically. The Supabase URL and publishable key live in `.env`; they're public
+by design, and the data is protected by row-level security. After adding a new domain, add it to Supabase → Authentication →
+URL Configuration so sign-in links can return to it.
+
 ## Project layout
 
 ```
