@@ -1,7 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, Share, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
+import { Aura } from '@/components/cosmic';
+import { glass, glow, hexA, Reveal } from '@/components/motion';
 import { AuthorLine, IdentityPicker, JoinPrompt, QUALITIES, Stars } from '@/components/quarx';
 import {
   Button,
@@ -18,7 +20,7 @@ import {
   Tap,
   useWide,
 } from '@/components/ui';
-import { C } from '@/constants/theme';
+import { C, F } from '@/constants/theme';
 import { catalog } from '@/data/catalog';
 import { getDomain } from '@/data/domains';
 import type { IdentityMode, Quality } from '@/data/types';
@@ -84,162 +86,239 @@ export default function TheoryReader() {
         .find((q, i, arr) => arr[i - 1]?.id === question.id && allTheories.some((t) => t.questionId === q.id))
     : undefined;
 
+  const hue = domain?.hue ?? C.gold;
+  const [lead, ...rest] = theory.paragraphs;
+
   return (
-    <Page narrow>
-      {/* Header: which question, and where we are in it */}
-      <Row style={{ justifyContent: 'space-between' }} gap={12}>
-        <Tap
-          href={{ pathname: '/question/[id]', params: { id: question.id } }}
-          accessibilityRole="link"
-          style={{ flex: 1 }}>
-          <Row gap={6}>
-            <Icon name="arrow-back" size={14} color={domain?.hue ?? C.textDim} />
-            <T v="label" color={domain?.hue ?? C.textDim} numberOfLines={1}>
-              {domain?.name ?? 'Question'}
-            </T>
-          </Row>
-        </Tap>
-        {siblings.length > 1 ? (
-          <Row gap={4}>
-            <NavArrow
-              icon="chevron-back"
-              disabled={!prev}
-              onPress={() => go(prev?.id)}
-              label="Previous theory"
-            />
-            <T v="small" style={{ minWidth: 58, textAlign: 'center' }}>
-              {index + 1} of {siblings.length}
-            </T>
-            <NavArrow
-              icon="chevron-forward"
-              disabled={!next}
-              onPress={() => go(next?.id)}
-              label="Next theory"
-            />
-          </Row>
-        ) : null}
-      </Row>
+    <View style={{ flex: 1 }}>
+      <Page narrow>
+        {/* A glow in the domain's colour, like light from a distant star */}
+        <Aura hue={hue} />
 
-      <Tap href={{ pathname: '/question/[id]', params: { id: question.id } }} accessibilityRole="link">
-        <T v="h2" style={{ marginTop: 14 }} color={C.textDim}>
-          {question.title}
-        </T>
-      </Tap>
-
-      {/* Progress through this question */}
-      {siblings.length > 1 ? (
-        <View style={styles.progress}>
-          <View style={[styles.progressFill, { width: `${((index + 1) / siblings.length) * 100}%` }]} />
-        </View>
-      ) : null}
-
-      {/* The theory */}
-      <View style={{ marginTop: 28, gap: 18 }}>
-        <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap' }} gap={8}>
-          <AuthorLine author={theory.author} date={theory.date} />
-          <Row gap={8}>
-            {theory.dmzPick ? <Pill text="DMZ pick" color={C.dmz} icon="star" /> : null}
-            {theory.ratingCount ? (
-              <T v="small">
-                ★ {theory.ratingAvg?.toFixed(1)} · {plural(theory.ratingCount, 'rating')}
+        {/* Header: which question, and where we are in it */}
+        <Reveal style={{ alignItems: 'center' }}>
+          <Tap href={{ pathname: '/question/[id]', params: { id: question.id } }} accessibilityRole="link">
+            <Row gap={8}>
+              {domain ? <Icon name={domain.icon as never} size={13} color={hue} /> : null}
+              <T v="label" color={hue} numberOfLines={1}>
+                {domain?.name ?? 'Question'}
               </T>
-            ) : null}
-            <T v="small">{readingMinutes(theory.paragraphs)} min read</T>
-          </Row>
-        </Row>
-        {theory.thesis ? (
-          <T v="quote" style={{ fontSize: wide ? 30 : 25, lineHeight: wide ? 38 : 32 }}>
-            {theory.thesis}
-          </T>
-        ) : null}
-        {theory.paragraphs.map((p, i) => (
-          <T key={i} v="reading">
-            {p}
-          </T>
-        ))}
-        {theory.changeMind ? (
-          <View style={styles.changeMind}>
-            <T v="label" color={C.ember}>
-              What would change my mind
+            </Row>
+          </Tap>
+          <Tap href={{ pathname: '/question/[id]', params: { id: question.id } }} accessibilityRole="link">
+            <T v="h1" style={{ marginTop: 14, textAlign: 'center' }}>
+              {question.title}
             </T>
-            <T v="body" color={C.textDim} style={{ marginTop: 6 }}>
-              {theory.changeMind}
-            </T>
-          </View>
-        ) : null}
-        {theory.needsReview ? (
-          <T v="small" color={C.textFaint}>
-            This piece may have been republished from elsewhere and is waiting for the DMZ to confirm its
-            source.
-          </T>
-        ) : null}
-        {theory.legacyUrl ? (
-          <T v="small" color={C.textFaint}>
-            Originally posted on quarxtheories.com.
-          </T>
-        ) : null}
-      </View>
-
-      <Actions
-        theoryId={theory.id}
-        authorKey={theory.author.mode !== 'anonymous' ? theory.author.key : undefined}
-        title={question.title}
-      />
-
-      <RatingPanel key={theory.id} theoryId={theory.id} />
-
-      <Comments key={`c-${theory.id}`} theoryId={theory.id} />
-
-      {/* Onward */}
-      <Section label="Keep going">
-        <View style={{ gap: 12 }}>
-          {next ? (
-            <Card onPress={() => go(next.id)} style={{ gap: 6 }}>
-              <Row style={{ justifyContent: 'space-between' }}>
-                <T v="label" color={C.ember}>
-                  Next theory
-                </T>
-                <Icon name="arrow-forward" size={16} color={C.ember} />
-              </Row>
-              <T v="body" numberOfLines={2}>
-                {next.thesis ?? next.paragraphs[0]}
-              </T>
-              <T v="small">by {next.author.display}</T>
-            </Card>
-          ) : (
-            <Card style={{ gap: 6 }}>
-              <T v="label">You’ve read every theory here</T>
-              <T v="body" color={C.textDim}>
-                {plural(siblings.length, 'mind has', 'minds have')} answered this question. What’s your take?
-              </T>
-              <Button
-                title="Add your theory"
-                icon="create-outline"
-                small
-                href={{ pathname: '/add', params: { q: question.id } }}
-                style={{ alignSelf: 'flex-start', marginTop: 6 }}
+          </Tap>
+          {siblings.length > 1 ? (
+            <Row gap={14} style={{ marginTop: 22 }}>
+              <NavArrow
+                icon="chevron-back"
+                disabled={!prev}
+                onPress={() => go(prev?.id)}
+                label="Previous theory"
               />
-            </Card>
-          )}
-          {nextQuestion && !next ? (
-            <Card
-              href={{
-                pathname: '/question/[id]',
-                params: { id: nextQuestion.id },
-              }}
-              style={{ gap: 6 }}>
-              <T v="label">Next question</T>
-              <T v="h3">{nextQuestion.title}</T>
-            </Card>
+              <StarTrail
+                count={siblings.length}
+                index={index}
+                hue={hue}
+                onPick={(i) => go(siblings[i]?.id)}
+              />
+              <NavArrow
+                icon="chevron-forward"
+                disabled={!next}
+                onPress={() => go(next?.id)}
+                label="Next theory"
+              />
+            </Row>
           ) : null}
+          {siblings.length > 1 ? (
+            <Text style={styles.position}>
+              Theory {index + 1} of {siblings.length}
+            </Text>
+          ) : null}
+        </Reveal>
+
+        {/* The theory */}
+        <Reveal key={theory.id} delay={120} style={{ marginTop: 40, gap: 22 }}>
+          <View style={{ alignItems: 'center', gap: 10 }}>
+            <AuthorLine author={theory.author} date={theory.date} />
+            <Row gap={10} style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+              {theory.dmzPick ? <Pill text="DMZ pick" color={C.dmz} icon="star" /> : null}
+              {theory.status === 'dmz_review' ? <Pill text="Awaiting the DMZ" color={C.dmz} /> : null}
+              {theory.ratingCount ? (
+                <T v="small">
+                  ★ {theory.ratingAvg?.toFixed(1)} · {plural(theory.ratingCount, 'rating')}
+                </T>
+              ) : null}
+              <T v="small">{readingMinutes(theory.paragraphs)} min read</T>
+            </Row>
+          </View>
+          {theory.thesis ? (
+            <Text style={[styles.thesis, !wide && { fontSize: 28, lineHeight: 35 }]}>“{theory.thesis}”</Text>
+          ) : null}
+          <Text style={styles.ornament}>· ✦ ·</Text>
+          <T v="reading" style={styles.lead}>
+            {lead}
+          </T>
+          {rest.map((p, i) => (
+            <T key={i} v="reading">
+              {p}
+            </T>
+          ))}
+          {theory.changeMind ? (
+            <View style={[styles.changeMind, { borderLeftColor: hue }]}>
+              <T v="label" color={hue}>
+                What would change my mind
+              </T>
+              <T v="body" color={C.textDim} style={{ marginTop: 8, fontStyle: 'italic' }}>
+                {theory.changeMind}
+              </T>
+            </View>
+          ) : null}
+          {theory.needsReview ? (
+            <T v="small" color={C.textFaint}>
+              This piece may have been republished from elsewhere and is waiting for the DMZ to confirm its
+              source.
+            </T>
+          ) : null}
+          {theory.legacyUrl ? (
+            <T v="small" color={C.textFaint}>
+              Originally posted on quarxtheories.com.
+            </T>
+          ) : null}
+          <Text style={styles.ornament}>✦</Text>
+        </Reveal>
+
+        <Actions
+          theoryId={theory.id}
+          authorKey={theory.author.mode !== 'anonymous' ? theory.author.key : undefined}
+          title={question.title}
+        />
+
+        <RatingPanel key={theory.id} theoryId={theory.id} />
+
+        <Comments key={`c-${theory.id}`} theoryId={theory.id} />
+
+        {/* Onward */}
+        <Section label="Keep going">
+          <View style={{ gap: 12 }}>
+            {next ? (
+              <Card onPress={() => go(next.id)} style={{ gap: 6 }}>
+                <Row style={{ justifyContent: 'space-between' }}>
+                  <T v="label" color={C.ember}>
+                    Next theory
+                  </T>
+                  <Icon name="arrow-forward" size={16} color={C.ember} />
+                </Row>
+                <T v="body" numberOfLines={2}>
+                  {next.thesis ?? next.paragraphs[0]}
+                </T>
+                <T v="small">by {next.author.display}</T>
+              </Card>
+            ) : (
+              <Card style={{ gap: 6 }}>
+                <T v="label">You’ve read every theory here</T>
+                <T v="body" color={C.textDim}>
+                  {plural(siblings.length, 'mind has', 'minds have')} answered this question. What’s your
+                  take?
+                </T>
+                <Button
+                  title="Add your theory"
+                  icon="create-outline"
+                  small
+                  href={{ pathname: '/add', params: { q: question.id } }}
+                  style={{ alignSelf: 'flex-start', marginTop: 6 }}
+                />
+              </Card>
+            )}
+            {nextQuestion && !next ? (
+              <Card
+                href={{
+                  pathname: '/question/[id]',
+                  params: { id: nextQuestion.id },
+                }}
+                style={{ gap: 6 }}>
+                <T v="label">Next question</T>
+                <T v="h3">{nextQuestion.title}</T>
+              </Card>
+            ) : null}
+          </View>
+        </Section>
+        {Platform.OS === 'web' && wide ? (
+          <T v="small" color={C.textFaint} style={{ marginTop: 18, textAlign: 'center' }}>
+            Tip: use ← and → to move between theories.
+          </T>
+        ) : null}
+      </Page>
+      {!wide && siblings.length > 1 ? (
+        <View style={[styles.floatNav, glass, glow('#000', 30, 0.6)]}>
+          <NavArrow
+            icon="chevron-back"
+            disabled={!prev}
+            onPress={() => go(prev?.id)}
+            label="Previous theory"
+          />
+          <Text style={styles.floatText}>
+            {index + 1} / {siblings.length}
+          </Text>
+          <NavArrow
+            icon="chevron-forward"
+            disabled={!next}
+            onPress={() => go(next?.id)}
+            label="Next theory"
+          />
         </View>
-      </Section>
-      {Platform.OS === 'web' && wide ? (
-        <T v="small" color={C.textFaint} style={{ marginTop: 18, textAlign: 'center' }}>
-          Tip: use ← and → to move between theories.
-        </T>
       ) : null}
-    </Page>
+    </View>
+  );
+}
+
+/** Progress through a question as a trail of stars — tap one to jump to it. */
+function StarTrail({
+  count,
+  index,
+  hue,
+  onPick,
+}: {
+  count: number;
+  index: number;
+  hue: string;
+  onPick: (i: number) => void;
+}) {
+  const MAX = 15;
+  if (count > MAX) {
+    return (
+      <View style={styles.trailBar}>
+        <View
+          style={[
+            styles.trailFill,
+            { width: `${((index + 1) / count) * 100}%`, backgroundColor: hue },
+            glow(hue, 12, 0.8),
+          ]}
+        />
+      </View>
+    );
+  }
+  return (
+    <Row gap={9}>
+      {Array.from({ length: count }, (_, i) => {
+        const on = i === index;
+        const seen = i < index;
+        return (
+          <Pressable key={i} onPress={() => onPick(i)} hitSlop={5} accessibilityLabel={`Theory ${i + 1}`}>
+            <View
+              style={[
+                styles.trailStar,
+                on && { width: 11, height: 11, backgroundColor: '#fff8ec' },
+                seen && { backgroundColor: hexA(hue, 0.7) },
+                on && glow(hue, 18, 0.95),
+              ]}
+            />
+          </Pressable>
+        );
+      })}
+    </Row>
   );
 }
 
@@ -472,6 +551,70 @@ function Comments({ theoryId }: { theoryId: string }) {
 }
 
 const styles = StyleSheet.create({
+  aura: {
+    position: 'absolute',
+    top: -160,
+    alignSelf: 'center',
+    width: 320,
+    height: 320,
+    borderRadius: 999,
+    opacity: 0.55,
+  },
+  position: {
+    fontFamily: F.inscription,
+    fontSize: 10.5,
+    letterSpacing: 2.4,
+    textTransform: 'uppercase',
+    color: C.textFaint,
+    marginTop: 12,
+  },
+  thesis: {
+    fontFamily: F.displayLightItalic,
+    fontSize: 36,
+    lineHeight: 44,
+    color: C.text,
+    textAlign: 'center',
+  },
+  ornament: {
+    fontFamily: F.displayLight,
+    fontSize: 20,
+    color: C.gold,
+    opacity: 0.7,
+    textAlign: 'center',
+    letterSpacing: 6,
+  },
+  lead: { fontSize: 22, lineHeight: 37 },
+  trailStar: { width: 6, height: 6, borderRadius: 6, backgroundColor: 'rgba(255,240,220,0.22)' },
+  trailBar: {
+    width: 180,
+    height: 3,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,240,220,0.12)',
+    overflow: 'hidden',
+  },
+  trailFill: { height: 3, borderRadius: 3 },
+  floatNav: {
+    position: 'absolute',
+    bottom: 96,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: C.lineStrong,
+    backgroundColor: 'rgba(8,9,20,0.94)',
+  },
+  floatText: {
+    fontFamily: F.inscription,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: C.text,
+    minWidth: 54,
+    textAlign: 'center',
+  },
   arrow: {
     width: 34,
     height: 34,

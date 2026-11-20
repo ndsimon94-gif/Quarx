@@ -2,6 +2,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
+import { Aura } from '@/components/cosmic';
+import { Reveal } from '@/components/motion';
 import { QuestionCard, TheoryCard } from '@/components/quarx';
 import { Button, Card, Empty, Icon, Page, Pill, Row, Section, Segmented, T, Tap } from '@/components/ui';
 import { C } from '@/constants/theme';
@@ -45,34 +47,37 @@ export default function QuestionScreen() {
 
   return (
     <Page narrow>
-      <Row gap={6} style={{ flexWrap: 'wrap' }}>
-        {domain ? (
-          <Tap href={{ pathname: '/domain/[id]', params: { id: domain.id } }} accessibilityRole="link">
-            <Row gap={6}>
-              <Icon name={domain.icon as never} size={14} color={domain.hue} />
-              <T v="label" color={domain.hue}>
-                {domain.name}
-              </T>
-            </Row>
-          </Tap>
-        ) : question.timeCapsule ? (
-          <T v="label">Time capsule</T>
-        ) : null}
-        {question.qotwWeek ? (
-          <Pill text={`Question of the Week · ${formatDate(question.qotwWeek)}`} icon="flame" />
-        ) : null}
-      </Row>
+      {domain ? <Aura hue={domain.hue} /> : null}
+      <Reveal style={{ alignItems: 'center' }}>
+        <Row gap={10} style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+          {domain ? (
+            <Tap href={{ pathname: '/domain/[id]', params: { id: domain.id } }} accessibilityRole="link">
+              <Row gap={6}>
+                <Icon name={domain.icon as never} size={14} color={domain.hue} />
+                <T v="label" color={domain.hue}>
+                  {domain.name}
+                </T>
+              </Row>
+            </Tap>
+          ) : question.timeCapsule ? (
+            <T v="label">Time capsule</T>
+          ) : null}
+          {question.qotwWeek ? (
+            <Pill text={`Question of the Week · ${formatDate(question.qotwWeek)}`} icon="flame" />
+          ) : null}
+        </Row>
 
-      <T v="h1" style={{ marginTop: 14 }}>
-        {question.title}
-      </T>
-      {question.context ? (
-        <T v="body" color={C.textDim} style={{ marginTop: 10 }}>
-          {question.context}
+        <T v="hero" style={{ marginTop: 18, textAlign: 'center' }}>
+          {question.title}
         </T>
-      ) : null}
+        {question.context ? (
+          <T v="body" color={C.textDim} style={{ marginTop: 12, textAlign: 'center', fontStyle: 'italic' }}>
+            {question.context}
+          </T>
+        ) : null}
+      </Reveal>
 
-      <Row gap={10} style={{ marginTop: 22, flexWrap: 'wrap' }}>
+      <Row gap={10} style={{ marginTop: 26, flexWrap: 'wrap', justifyContent: 'center' }}>
         {theories.length ? (
           <Button
             title="Read one by one"

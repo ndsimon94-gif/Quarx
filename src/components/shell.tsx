@@ -1,11 +1,13 @@
 import { usePathname, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, F, S } from '@/constants/theme';
 import { useStore } from '@/lib/store';
 
+import { useDrawStar } from './cosmic';
+import { glass, glow } from './motion';
 import { Logo } from './quarx';
 import { Icon, Tap, useWide, type IconName } from './ui';
 
@@ -111,7 +113,8 @@ function Frame({
   if (wide) {
     return (
       <View style={{ flex: 1 }}>
-        <View style={styles.topbar}>
+        <View style={{ flex: 1 }}>{children}</View>
+        <View style={[styles.topbar, glass]}>
           <View style={styles.topbarInner}>
             <Logo />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -137,7 +140,8 @@ function Frame({
               </Tap>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Tap href="/add" style={styles.addBtn} accessibilityRole="button">
+              <DrawStar />
+              <Tap href="/add" style={[styles.addBtn, glow(C.ember, 22, 0.4)]} accessibilityRole="button">
                 <Icon name="create-outline" size={16} color="#1a0f05" />
                 <Text style={styles.addText}>Add a theory</Text>
               </Tap>
@@ -148,7 +152,6 @@ function Frame({
             </View>
           </View>
         </View>
-        <View style={{ flex: 1 }}>{children}</View>
       </View>
     );
   }
@@ -157,11 +160,15 @@ function Frame({
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>{children}</View>
       {!hideTabs && (
-        <View style={[styles.tabbar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+        <View style={[styles.tabbar, glass, { paddingBottom: Math.max(insets.bottom, 10) }]}>
           {NAV.slice(0, 2).map((n) => (
             <Tab key={n.label} item={n} on={n.match(pathname)} />
           ))}
-          <Tap href="/add" style={styles.fab} accessibilityRole="button" accessibilityLabel="Add a theory">
+          <Tap
+            href="/add"
+            style={[styles.fab, glow(C.ember, 26, 0.6)]}
+            accessibilityRole="button"
+            accessibilityLabel="Add a theory">
             <Icon name="add" size={28} color="#1a0f05" />
           </Tap>
           {NAV.slice(2).map((n) => (
@@ -170,6 +177,20 @@ function Frame({
         </View>
       )}
     </View>
+  );
+}
+
+function DrawStar() {
+  const draw = useDrawStar();
+  return (
+    <Pressable
+      onPress={draw}
+      accessibilityRole="button"
+      accessibilityLabel="Draw a star: open a random theory"
+      style={(st) => [styles.me, (st as { hovered?: boolean }).hovered && { borderColor: C.emberLine }]}>
+      <Icon name="sparkles-outline" size={17} color={C.gold} />
+      <Text style={styles.meText}>Draw a star</Text>
+    </Pressable>
   );
 }
 
@@ -205,9 +226,14 @@ const styles = StyleSheet.create({
   },
   noticeText: { fontFamily: F.ui, fontSize: 13.5, color: C.text, flexShrink: 1 },
   topbar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     borderBottomWidth: 1,
-    borderBottomColor: C.line,
-    backgroundColor: 'rgba(7,8,15,0.72)',
+    borderBottomColor: 'rgba(255,240,220,0.06)',
+    backgroundColor: 'rgba(4,5,12,0.55)',
     paddingHorizontal: S.gutter,
   },
   topbarInner: {
@@ -225,8 +251,14 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     justifyContent: 'center',
   },
-  topLinkOn: { backgroundColor: 'rgba(255,255,255,0.06)' },
-  topLinkText: { fontFamily: F.uiMedium, fontSize: 14, color: C.textDim },
+  topLinkOn: { backgroundColor: 'rgba(246,213,142,0.08)' },
+  topLinkText: {
+    fontFamily: F.inscription,
+    fontSize: 11.5,
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+    color: C.textDim,
+  },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -257,12 +289,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingTop: 8,
-    backgroundColor: 'rgba(6,7,13,0.94)',
+    backgroundColor: 'rgba(4,5,12,0.72)',
     borderTopWidth: 1,
     borderTopColor: C.line,
   },
   tab: { alignItems: 'center', gap: 2, minWidth: 56, paddingVertical: 2 },
-  tabText: { fontFamily: F.uiMedium, fontSize: 10.5, color: C.textDim },
+  tabText: {
+    fontFamily: F.inscription,
+    fontSize: 8.5,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    color: C.textDim,
+  },
   fab: {
     width: 52,
     height: 52,

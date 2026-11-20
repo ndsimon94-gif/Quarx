@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
+import { Reveal } from '@/components/motion';
 import { DomainCard, QuestionCard, TheoryCard } from '@/components/quarx';
 import { Empty, Field, Grid, Page, Section, T } from '@/components/ui';
-import { C } from '@/constants/theme';
 import { catalog } from '@/data/catalog';
 import { plural } from '@/lib/format';
 import { useStore } from '@/lib/store';
@@ -27,12 +27,12 @@ export default function Explore() {
 
   return (
     <Page>
-      <T v="label" color={C.ember}>
-        Explore
-      </T>
-      <T v="h1" style={{ marginTop: 8, marginBottom: 20 }}>
-        Where would you like to wonder?
-      </T>
+      <Reveal style={{ alignItems: 'center', marginTop: 10, marginBottom: 30 }}>
+        <T v="eyebrow">Explore</T>
+        <T v="hero" style={{ marginTop: 12, textAlign: 'center' }}>
+          Where would you like to wonder?
+        </T>
+      </Reveal>
       <Field
         value={query}
         onChangeText={setQuery}

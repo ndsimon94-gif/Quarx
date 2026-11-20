@@ -28,7 +28,7 @@ const STARS = Array.from({ length: 170 }, () => {
 });
 
 /** The night sky behind every screen, with a faint fire-glow rising from below. */
-export const Starfield = memo(function Starfield() {
+export const Sky = memo(function Sky() {
   return (
     <View style={[StyleSheet.absoluteFill, { zIndex: 0 }]} pointerEvents="none">
       <Svg width="100%" height="100%" preserveAspectRatio="none">

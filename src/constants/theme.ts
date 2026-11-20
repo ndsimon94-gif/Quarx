@@ -3,16 +3,18 @@
  * Deep blue-black backgrounds, starlight text, ember accents.
  */
 export const C = {
-  bg: '#07080f',
-  bgDeep: '#04050a',
-  bgRaised: '#0d0f1c',
-  card: 'rgba(255,255,255,0.035)',
-  cardHover: 'rgba(255,255,255,0.06)',
-  line: 'rgba(255,255,255,0.08)',
-  lineStrong: 'rgba(255,255,255,0.16)',
-  text: '#ece6d9',
-  textDim: '#a59f93',
-  textFaint: '#6e6a63',
+  bg: '#05060d',
+  bgDeep: '#030409',
+  bgRaised: '#0c0d1a',
+  card: 'rgba(14,15,30,0.42)',
+  cardHover: 'rgba(24,24,44,0.55)',
+  line: 'rgba(255,240,220,0.08)',
+  lineStrong: 'rgba(255,240,220,0.18)',
+  text: '#efe8da',
+  textDim: '#aaa294',
+  textFaint: '#726c63',
+  gold: '#f6d58e',
+  aurora: '#8d7cf6',
   ember: '#f2a65a',
   emberDeep: '#d9773a',
   emberSoft: 'rgba(242,166,90,0.13)',
@@ -24,7 +26,11 @@ export const C = {
 } as const;
 
 export const F = {
+  inscription: 'Cinzel_500Medium',
+  inscriptionBold: 'Cinzel_600SemiBold',
   display: 'CormorantGaramond_600SemiBold',
+  displayLight: 'CormorantGaramond_400Regular',
+  displayLightItalic: 'CormorantGaramond_400Regular_Italic',
   displayMedium: 'CormorantGaramond_500Medium',
   displayItalic: 'CormorantGaramond_500Medium_Italic',
   body: 'Newsreader_400Regular',
@@ -37,10 +43,10 @@ export const F = {
 
 export const S = {
   gutter: 20,
-  maxWidth: 1080,
+  maxWidth: 1120,
   readingWidth: 680,
-  radius: 16,
-  radiusSm: 10,
+  radius: 20,
+  radiusSm: 12,
 } as const;
 
 /** Breakpoint where the layout switches from phone (bottom tabs) to desktop (top nav). */

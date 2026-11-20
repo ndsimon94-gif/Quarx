@@ -6,9 +6,11 @@ import { C, F } from '@/constants/theme';
 import { catalog, currentQotw } from '@/data/catalog';
 import { getDomain } from '@/data/domains';
 import type { Author, Domain, IdentityMode, Quality, Question, Theory } from '@/data/types';
-import { countdown, excerpt, formatDate, plural, readingMinutes } from '@/lib/format';
+import { excerpt, formatDate, plural, readingMinutes } from '@/lib/format';
 import { legacyMinds, POINTS, useStore } from '@/lib/store';
 
+import { Aura, DomainOrb, Eclipse } from './cosmic';
+import { glow, hexA, Motion } from './motion';
 import { Button, Card, Chip, Icon, Pill, Row, T, Tap, useWide } from './ui';
 
 // ---------- Brand ----------
@@ -16,9 +18,19 @@ export function LogoMark({ size = 28 }: { size?: number }) {
   // A star over an ember — the sky above the fire.
   return (
     <Svg width={size} height={size} viewBox="0 0 32 32">
-      <Circle cx="16" cy="16" r="15" stroke={C.ember} strokeOpacity={0.5} strokeWidth="1" fill="none" />
-      <Path d="M16 5 L17.6 13.4 L26 15 L17.6 16.6 L16 25 L14.4 16.6 L6 15 L14.4 13.4 Z" fill={C.star} />
-      <Circle cx="16" cy="27.2" r="1.6" fill={C.ember} />
+      <Circle cx="16" cy="16" r="15" stroke={C.gold} strokeOpacity={0.45} strokeWidth="0.8" fill="none" />
+      <Circle
+        cx="16"
+        cy="16"
+        r="11.5"
+        stroke={C.gold}
+        strokeOpacity={0.15}
+        strokeWidth="0.6"
+        strokeDasharray="1 3"
+        fill="none"
+      />
+      <Path d="M16 4 L17.4 13.6 L27 15 L17.4 16.4 L16 26 L14.6 16.4 L5 15 L14.6 13.6 Z" fill={C.star} />
+      <Circle cx="16" cy="28" r="1.7" fill={C.ember} />
     </Svg>
   );
 }
@@ -29,17 +41,13 @@ export function Logo() {
       href="/"
       accessibilityRole="link"
       accessibilityLabel="Quarx home"
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <LogoMark />
-      <Text
-        style={{
-          fontFamily: F.display,
-          fontSize: 26,
-          color: C.text,
-          letterSpacing: 4,
-        }}>
-        QUARX
-      </Text>
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Motion kind="pulse" duration={8000}>
+        <View style={[{ borderRadius: 99 }, glow(C.gold, 18, 0.35)]}>
+          <LogoMark size={30} />
+        </View>
+      </Motion>
+      <Text style={{ fontFamily: F.inscription, fontSize: 21, color: C.text, letterSpacing: 7 }}>QUARX</Text>
     </Tap>
   );
 }
@@ -98,16 +106,24 @@ export function DomainCard({ domain }: { domain: Domain }) {
   return (
     <Card
       href={{ pathname: '/domain/[id]', params: { id: domain.id } }}
-      glow={`${domain.hue}66`}
-      style={{ flex: 1, minHeight: 150, gap: 10 }}>
-      <DomainIcon domain={domain} />
-      <T v="h3">{domain.name}</T>
+      glow={domain.hue}
+      style={{ flex: 1, minHeight: 190, gap: 10 }}>
+      <Aura
+        hue={domain.hue}
+        size={260}
+        opacity={0.3}
+        style={{ top: -130, right: -110, alignSelf: undefined }}
+      />
+      <DomainOrb domain={domain} size={64} />
+      <T v="h3" style={{ marginTop: 2 }}>
+        {domain.name}
+      </T>
       <T v="small" numberOfLines={2}>
         {domain.tagline}
       </T>
-      <T v="small" color={C.textFaint} style={{ marginTop: 'auto' }}>
+      <Text style={[styles.inscriptionMeta, { marginTop: 'auto' }]}>
         {plural(qs.length, 'question')} · {plural(n, 'theory', 'theories')}
-      </T>
+      </Text>
     </Card>
   );
 }
@@ -117,29 +133,36 @@ export function QuestionCard({ question, showDomain }: { question: Question; sho
   const { allTheories } = useStore();
   const n = allTheories.filter((t) => t.questionId === question.id).length;
   const d = getDomain(question.domainId);
+  const hue = d?.hue ?? C.gold;
   return (
     <Card
       href={{ pathname: '/question/[id]', params: { id: question.id } }}
-      style={{ gap: 8 }}
-      glow={d ? `${d.hue}55` : undefined}>
+      style={{ gap: 10, paddingLeft: 24 }}
+      glow={hue}>
+      <View pointerEvents="none" style={[styles.hueBar, { backgroundColor: hue }, glow(hue, 14, 0.6)]} />
       {showDomain && d ? (
         <Row gap={6}>
-          <Icon name={d.icon as never} size={13} color={d.hue} />
+          <Icon name={d.icon as never} size={12} color={d.hue} />
           <T v="label" color={d.hue}>
             {d.name}
           </T>
         </Row>
       ) : null}
-      <T v="h3">{question.title}</T>
-      {question.context ? <T v="small">{question.context}</T> : null}
-      <Row gap={10}>
-        <T v="small" color={n ? C.textDim : C.ember}>
-          {n ? plural(n, 'theory', 'theories') : 'Be the first to answer'}
+      <Row style={{ alignItems: 'flex-start' }} gap={12}>
+        <T v="h3" style={{ flex: 1, fontSize: 24, lineHeight: 30 }}>
+          {question.title}
         </T>
+        <Icon name="arrow-forward" size={16} color={hexA(hue, 0.7)} style={{ marginTop: 6 }} />
+      </Row>
+      {question.context ? <T v="small">{question.context}</T> : null}
+      <Row gap={10} style={{ flexWrap: 'wrap' }}>
+        <Text style={[styles.inscriptionMeta, !n && { color: C.ember }]}>
+          {n ? plural(n, 'theory', 'theories') : 'Awaiting its first theory'}
+        </Text>
         {question.qotwWeek ? (
           <Pill text={`QOTW · ${formatDate(question.qotwWeek)}`} color={C.textDim} />
         ) : null}
-        {question.origin === 'new' ? <Pill text="New" color={C.ember} /> : null}
+        {question.origin === 'new' ? <Pill text="New" color={C.gold} /> : null}
       </Row>
     </Card>
   );
@@ -165,14 +188,26 @@ export function TheoryCard({
         pathname: '/theory/[id]',
         params: sort ? { id: theory.id, sort } : { id: theory.id },
       }}
-      style={{ gap: 10 }}>
+      glow={C.gold}
+      style={{ gap: 10, paddingTop: 26 }}>
+      <Text pointerEvents="none" style={styles.quoteGlyph}>
+        “
+      </Text>
       {showQuestion && q ? (
-        <T v="label" numberOfLines={2}>
+        <T
+          v="label"
+          numberOfLines={2}
+          color={getDomain(q.domainId)?.hue ?? C.textDim}
+          style={{ paddingRight: 36 }}>
           {q.title}
         </T>
       ) : null}
       {theory.thesis ? <T v="quote">{theory.thesis}</T> : null}
-      <T v="body" color={theory.thesis ? C.textDim : C.text} numberOfLines={theory.thesis ? 3 : 5}>
+      <T
+        v="body"
+        color={theory.thesis ? C.textDim : C.text}
+        numberOfLines={theory.thesis ? 3 : 5}
+        style={!theory.thesis ? { fontSize: 18, lineHeight: 28 } : undefined}>
         {excerpt(theory.paragraphs, theory.thesis ? 36 : 56)}
       </T>
       <Row
@@ -240,11 +275,13 @@ export function Stars({
           accessibilityRole="button"
           accessibilityLabel={`${n} star${n > 1 ? 's' : ''}`}
           hitSlop={4}>
-          <Icon
-            name={n <= value ? 'star' : 'star-outline'}
-            size={size}
-            color={n <= value ? C.ember : C.textFaint}
-          />
+          <View style={[{ borderRadius: 99 }, n <= value && glow(C.gold, 18, 0.55)]}>
+            <Icon
+              name={n <= value ? 'star' : 'star-outline'}
+              size={size}
+              color={n <= value ? C.gold : C.textFaint}
+            />
+          </View>
         </Pressable>
       ))}
     </Row>
@@ -267,47 +304,55 @@ export function QotwHero({ compact }: { compact?: boolean }) {
   const wide = useWide();
   const n = allTheories.filter((t) => t.questionId === qotw.question.id).length;
   const d = getDomain(qotw.question.domainId);
+  const ms = qotw.endsInMs;
+  const parts = [
+    [Math.floor(ms / 86_400_000), 'days'],
+    [Math.floor((ms % 86_400_000) / 3_600_000), 'hours'],
+    [Math.floor((ms % 3_600_000) / 60_000), 'min'],
+  ] as const;
   return (
-    <View style={[styles.qotw, !wide && { padding: 22 }]}>
-      <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap' }} gap={8}>
-        <Row gap={8}>
-          <Icon name="flame" size={16} color={C.ember} />
+    <View style={[styles.qotw, wide && { flexDirection: 'row', alignItems: 'center', gap: 40 }]}>
+      <View style={{ alignItems: 'center', marginBottom: wide ? 0 : 6 }}>
+        <Eclipse size={wide ? (compact ? 240 : 300) : 210} />
+      </View>
+      <View style={{ flex: wide ? 1 : undefined }}>
+        <Row gap={10}>
+          <Motion kind="twinkle">
+            <Icon name="flame" size={15} color={C.ember} />
+          </Motion>
           <T v="label" color={C.ember}>
             Question of the Week
           </T>
         </Row>
-        <T v="small" color={C.textDim}>
-          Week of {formatDate(qotw.weekOf)} · {countdown(qotw.endsInMs)}
+        <T v={compact ? 'h1' : 'hero'} style={{ marginTop: 14 }}>
+          {qotw.question.title}
         </T>
-      </Row>
-      <T v={compact ? 'h1' : 'hero'} style={{ marginTop: 16, maxWidth: 820 }}>
-        {qotw.question.title}
-      </T>
-      <T v="small" style={{ marginTop: 12 }}>
-        {d ? `${d.name} · ` : ''}
-        {n
-          ? `${plural(n, 'theory', 'theories')} so far`
-          : 'No theories yet — the fire is waiting for its first spark.'}
-      </T>
-      <Row gap={10} style={{ marginTop: 22, flexWrap: 'wrap' }}>
-        <Tap
-          href={{ pathname: '/add', params: { q: qotw.question.id } }}
-          style={styles.qotwPrimary}
-          accessibilityRole="button">
-          <Icon name="create-outline" size={17} color="#1a0f05" />
-          <Text style={styles.qotwPrimaryText}>Add your theory</Text>
-        </Tap>
-        <Tap
-          href={{
-            pathname: '/question/[id]',
-            params: { id: qotw.question.id },
-          }}
-          style={styles.qotwSecondary}
-          accessibilityRole="button">
-          <Text style={styles.qotwSecondaryText}>Read theories</Text>
-          <Icon name="arrow-forward" size={16} color={C.text} />
-        </Tap>
-      </Row>
+        <T v="small" style={{ marginTop: 12 }}>
+          {d ? `${d.name} · ` : ''}Week of {formatDate(qotw.weekOf)} ·{' '}
+          {n ? `${plural(n, 'theory', 'theories')} so far` : 'the fire awaits its first spark'}
+        </T>
+        <Row gap={18} style={{ marginTop: 22 }}>
+          {parts.map(([v, unit]) => (
+            <View key={unit} style={{ alignItems: 'center', minWidth: 52 }}>
+              <Text style={styles.countNum}>{String(v).padStart(2, '0')}</Text>
+              <Text style={styles.countUnit}>{unit}</Text>
+            </View>
+          ))}
+        </Row>
+        <Row gap={10} style={{ marginTop: 24, flexWrap: 'wrap' }}>
+          <Button
+            title="Add your theory"
+            icon="create-outline"
+            href={{ pathname: '/add', params: { q: qotw.question.id } }}
+          />
+          <Button
+            title="Read theories"
+            kind="secondary"
+            icon="arrow-forward"
+            href={{ pathname: '/question/[id]', params: { id: qotw.question.id } }}
+          />
+        </Row>
+      </View>
     </View>
   );
 }
@@ -358,38 +403,48 @@ export function JoinPrompt({ what }: { what: string }) {
 const styles = StyleSheet.create({
   author: { fontFamily: F.uiSemi, fontSize: 14, color: C.text },
   meta: { fontFamily: F.ui, fontSize: 12.5, color: C.textDim },
-  domainIcon: {
+  inscriptionMeta: {
+    fontFamily: F.inscription,
+    fontSize: 10.5,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: C.textFaint,
+  },
+  domainIcon: { borderRadius: 999, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  cardNebula: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
     borderRadius: 999,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    top: -70,
+    right: -60,
+    opacity: 0.6,
+  },
+  hueBar: { position: 'absolute', left: 0, top: 18, bottom: 18, width: 2, borderRadius: 2, opacity: 0.8 },
+  quoteGlyph: {
+    position: 'absolute',
+    top: -6,
+    right: 16,
+    fontFamily: F.displayLight,
+    fontSize: 96,
+    lineHeight: 110,
+    color: C.gold,
+    opacity: 0.16,
   },
   qotw: {
-    borderRadius: 24,
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: C.emberLine,
-    backgroundColor: 'rgba(242,166,90,0.06)',
-    padding: 34,
+    borderColor: 'rgba(242,166,90,0.28)',
+    backgroundColor: 'rgba(20,12,10,0.35)',
+    padding: 28,
+    overflow: 'hidden',
   },
-  qotwPrimary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: C.ember,
-    height: 46,
-    paddingHorizontal: 20,
-    borderRadius: 999,
+  countNum: { fontFamily: F.displayLight, fontSize: 40, lineHeight: 42, color: C.text },
+  countUnit: {
+    fontFamily: F.inscription,
+    fontSize: 9.5,
+    letterSpacing: 2.4,
+    textTransform: 'uppercase',
+    color: C.textFaint,
   },
-  qotwPrimaryText: { fontFamily: F.uiSemi, fontSize: 15, color: '#1a0f05' },
-  qotwSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    height: 46,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: C.lineStrong,
-  },
-  qotwSecondaryText: { fontFamily: F.uiSemi, fontSize: 15, color: C.text },
 });

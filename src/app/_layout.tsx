@@ -1,3 +1,7 @@
+import { Cinzel_500Medium } from '@expo-google-fonts/cinzel/500Medium';
+import { Cinzel_600SemiBold } from '@expo-google-fonts/cinzel/600SemiBold';
+import { CormorantGaramond_400Regular } from '@expo-google-fonts/cormorant-garamond/400Regular';
+import { CormorantGaramond_400Regular_Italic } from '@expo-google-fonts/cormorant-garamond/400Regular_Italic';
 import { CormorantGaramond_500Medium } from '@expo-google-fonts/cormorant-garamond/500Medium';
 import { CormorantGaramond_500Medium_Italic } from '@expo-google-fonts/cormorant-garamond/500Medium_Italic';
 import { CormorantGaramond_600SemiBold } from '@expo-google-fonts/cormorant-garamond/600SemiBold';
@@ -15,7 +19,7 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Shell } from '@/components/shell';
-import { Starfield } from '@/components/starfield';
+import { Sky } from '@/components/sky';
 import { C } from '@/constants/theme';
 import { StoreProvider } from '@/lib/store';
 
@@ -36,6 +40,10 @@ const NAV_THEME: Theme = {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
+    Cinzel_500Medium,
+    Cinzel_600SemiBold,
+    CormorantGaramond_400Regular,
+    CormorantGaramond_400Regular_Italic,
     CormorantGaramond_500Medium,
     CormorantGaramond_500Medium_Italic,
     CormorantGaramond_600SemiBold,
@@ -59,7 +67,7 @@ export default function RootLayout() {
         <StoreProvider>
           <StatusBar style="light" />
           <View style={{ flex: 1, backgroundColor: C.bg }}>
-            <Starfield />
+            <Sky />
             <View style={{ flex: 1, zIndex: 1 }}>
               <Shell>
                 <Stack

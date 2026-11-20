@@ -16,55 +16,71 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, F, S, WIDE } from '@/constants/theme';
+
+import { glass, glow as glowStyle, hexA } from './motion';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 export const Icon = Ionicons;
 
 // ---------- Typography ----------
-type Variant = 'hero' | 'h1' | 'h2' | 'h3' | 'body' | 'reading' | 'ui' | 'small' | 'label' | 'quote';
+type Variant =
+  | 'mega'
+  | 'hero'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'body'
+  | 'reading'
+  | 'ui'
+  | 'small'
+  | 'label'
+  | 'eyebrow'
+  | 'quote';
 
 const variants: Record<Variant, TextStyle> = {
-  hero: {
-    fontFamily: F.display,
-    fontSize: 52,
-    lineHeight: 56,
-    color: C.text,
-    letterSpacing: -0.5,
-  },
-  h1: { fontFamily: F.display, fontSize: 38, lineHeight: 44, color: C.text },
-  h2: { fontFamily: F.display, fontSize: 28, lineHeight: 34, color: C.text },
-  h3: {
-    fontFamily: F.displayMedium,
-    fontSize: 22,
-    lineHeight: 28,
-    color: C.text,
-  },
-  body: { fontFamily: F.body, fontSize: 17, lineHeight: 26, color: C.text },
-  reading: { fontFamily: F.body, fontSize: 19, lineHeight: 31, color: C.text },
-  quote: {
-    fontFamily: F.displayItalic,
-    fontSize: 24,
-    lineHeight: 31,
-    color: C.text,
-  },
+  mega: { fontFamily: F.displayLight, fontSize: 112, lineHeight: 108, color: C.text, letterSpacing: -2 },
+  hero: { fontFamily: F.displayLight, fontSize: 60, lineHeight: 64, color: C.text, letterSpacing: -0.8 },
+  h1: { fontFamily: F.displayMedium, fontSize: 44, lineHeight: 50, color: C.text, letterSpacing: -0.4 },
+  h2: { fontFamily: F.displayMedium, fontSize: 32, lineHeight: 38, color: C.text },
+  h3: { fontFamily: F.displayMedium, fontSize: 23, lineHeight: 29, color: C.text },
+  body: { fontFamily: F.body, fontSize: 17, lineHeight: 27, color: C.text },
+  reading: { fontFamily: F.body, fontSize: 20, lineHeight: 34, color: C.text },
+  quote: { fontFamily: F.displayLightItalic, fontSize: 26, lineHeight: 33, color: C.text },
   ui: { fontFamily: F.ui, fontSize: 15, lineHeight: 21, color: C.text },
-  small: { fontFamily: F.ui, fontSize: 13, lineHeight: 18, color: C.textDim },
+  small: { fontFamily: F.ui, fontSize: 13, lineHeight: 19, color: C.textDim },
   label: {
-    fontFamily: F.uiSemi,
+    fontFamily: F.inscription,
     fontSize: 11.5,
     lineHeight: 16,
     color: C.textDim,
-    letterSpacing: 1.6,
+    letterSpacing: 2.6,
+    textTransform: 'uppercase',
+  },
+  eyebrow: {
+    fontFamily: F.inscription,
+    fontSize: 13,
+    lineHeight: 18,
+    color: C.gold,
+    letterSpacing: 5,
     textTransform: 'uppercase',
   },
 };
 
+const PHONE_SCALE: Partial<Record<Variant, number>> = {
+  mega: 0.6,
+  hero: 0.68,
+  h1: 0.8,
+  h2: 0.9,
+  eyebrow: 0.85,
+};
+
 export function T({ v = 'body', color, style, ...rest }: TextProps & { v?: Variant; color?: string }) {
   const { width } = useWindowDimensions();
-  const scale = width < 420 && (v === 'hero' || v === 'h1') ? 0.78 : 1;
+  const scale = width < 520 ? (PHONE_SCALE[v] ?? 1) : width < 900 && (v === 'mega' || v === 'hero') ? 0.8 : 1;
   const base = variants[v];
   return (
     <Text
@@ -103,7 +119,7 @@ export function Page({
     <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={{
-        paddingTop: wide ? 28 : insets.top + 18,
+        paddingTop: wide ? 104 : insets.top + 18,
         paddingBottom: wide ? 80 : insets.bottom + 110,
         paddingHorizontal: S.gutter,
       }}
@@ -213,7 +229,7 @@ export const Card = forwardRef<View, CardProps>(function Card(
   // A card with nowhere to go is just a container, not a (disabled) button.
   if (!href && !onPress) {
     return (
-      <View ref={ref} style={[styles.card, style]}>
+      <View ref={ref} style={[styles.card, glass, style]}>
         {children}
       </View>
     );
@@ -226,13 +242,15 @@ export const Card = forwardRef<View, CardProps>(function Card(
       onPress={href ? () => router.push(href) : onPress}
       style={(state) => {
         const hovered = (state as { hovered?: boolean }).hovered;
+        const lit = hovered || state.pressed;
         return [
           styles.card,
-          (hovered || state.pressed) && {
-            backgroundColor: C.cardHover,
-            borderColor: glow ?? C.lineStrong,
-          },
-          state.pressed && { transform: [{ scale: 0.995 }] },
+          glass,
+          styles.cardInteractive,
+          lit && { backgroundColor: C.cardHover, borderColor: glow ? hexA(glow, 0.55) : C.lineStrong },
+          lit && glowStyle(glow ?? C.ember, 34, 0.18),
+          hovered && { transform: [{ translateY: -3 }] },
+          state.pressed && { transform: [{ scale: 0.99 }] },
           style,
         ];
       }}>
@@ -262,8 +280,8 @@ export function Button({
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = {
-    primary: { bg: C.ember, fg: '#1a0f05', border: C.ember },
-    secondary: { bg: 'transparent', fg: C.text, border: C.lineStrong },
+    primary: { bg: 'transparent', fg: '#1b0f04', border: 'transparent' },
+    secondary: { bg: 'rgba(255,255,255,0.03)', fg: C.text, border: C.lineStrong },
     ghost: { bg: 'transparent', fg: C.ember, border: 'transparent' },
     dmz: { bg: C.dmzSoft, fg: C.dmz, border: 'rgba(199,166,255,0.4)' },
   }[kind];
@@ -278,11 +296,24 @@ export function Button({
           styles.button,
           small && styles.buttonSmall,
           { backgroundColor: colors.bg, borderColor: colors.border },
-          (hovered || state.pressed) && { opacity: 0.86 },
+          kind === 'primary' && glowStyle(C.ember, hovered ? 34 : 22, hovered ? 0.55 : 0.32),
+          kind === 'secondary' && glass,
+          hovered &&
+            kind !== 'primary' && { borderColor: C.emberLine, backgroundColor: 'rgba(242,166,90,0.06)' },
+          hovered && { transform: [{ translateY: -1 }] },
+          state.pressed && { opacity: 0.85 },
           disabled && { opacity: 0.4 },
           style,
         ];
       }}>
+      {kind === 'primary' ? (
+        <LinearGradient
+          colors={['#ffd79a', '#f2a65a', '#e0803f']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill, { borderRadius: 999 }]}
+        />
+      ) : null}
       {icon ? <Icon name={icon} size={small ? 15 : 17} color={colors.fg} /> : null}
       <Text style={[styles.buttonText, small && { fontSize: 13.5 }, { color: colors.fg }]}>{title}</Text>
     </Pressable>
@@ -435,20 +466,33 @@ const styles = StyleSheet.create({
     borderColor: C.line,
     borderWidth: 1,
     borderRadius: S.radius,
-    padding: 18,
+    padding: 20,
+    overflow: 'hidden',
   },
+  cardInteractive: Platform.select({
+    web: {
+      transitionProperty: 'transform, box-shadow, border-color, background-color',
+      transitionDuration: '350ms',
+    } as ViewStyle,
+    default: {},
+  }),
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingHorizontal: 20,
-    height: 46,
+    height: 48,
     borderRadius: 999,
     borderWidth: 1,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: { transitionProperty: 'transform, box-shadow', transitionDuration: '250ms' } as ViewStyle,
+      default: {},
+    }),
   },
   buttonSmall: { height: 36, paddingHorizontal: 14 },
-  buttonText: { fontFamily: F.uiSemi, fontSize: 15 },
+  buttonText: { fontFamily: F.uiSemi, fontSize: 15, letterSpacing: 0.2 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

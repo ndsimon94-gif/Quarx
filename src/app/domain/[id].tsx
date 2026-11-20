@@ -2,7 +2,9 @@ import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
-import { DomainIcon, QuestionCard } from '@/components/quarx';
+import { DomainOrb } from '@/components/cosmic';
+import { Reveal } from '@/components/motion';
+import { QuestionCard } from '@/components/quarx';
 import { Button, Chip, Empty, Page, Row, T } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { catalog } from '@/data/catalog';
@@ -50,20 +52,26 @@ export default function DomainScreen() {
         href="/explore"
         style={{ alignSelf: 'flex-start', marginLeft: -12 }}
       />
-      <Row gap={16} style={{ marginTop: 12, alignItems: 'flex-start' }}>
-        <DomainIcon domain={domain} size={24} />
-        <View style={{ flex: 1 }}>
-          <T v="h1">{domain.name}</T>
-          <T v="body" color={C.textDim} style={{ marginTop: 6 }}>
-            {domain.tagline}
-          </T>
-          <T v="small" color={C.textFaint} style={{ marginTop: 8 }}>
-            {plural(all.length, 'question')} · {plural(n, 'theory', 'theories')}
-          </T>
-        </View>
-      </Row>
+      <Reveal style={{ alignItems: 'center', marginTop: 8 }}>
+        <DomainOrb domain={domain} size={150} />
+        <T v="eyebrow" color={domain.hue} style={{ marginTop: 10 }}>
+          Domain
+        </T>
+        <T v="hero" style={{ textAlign: 'center', marginTop: 8 }}>
+          {domain.name}
+        </T>
+        <T
+          v="body"
+          color={C.textDim}
+          style={{ marginTop: 10, textAlign: 'center', maxWidth: 560, fontSize: 19 }}>
+          {domain.tagline}
+        </T>
+        <T v="label" color={C.textFaint} style={{ marginTop: 14 }}>
+          {plural(all.length, 'question')} · {plural(n, 'theory', 'theories')}
+        </T>
+      </Reveal>
 
-      <Row gap={8} style={{ marginTop: 26, marginBottom: 16, flexWrap: 'wrap' }}>
+      <Row gap={8} style={{ marginTop: 40, marginBottom: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
         <Chip label="All" active={filter === 'all'} onPress={() => setFilter('all')} color={domain.hue} />
         <Chip
           label="Most discussed"
@@ -82,7 +90,11 @@ export default function DomainScreen() {
 
       <View style={{ gap: 12 }}>
         {qs.length ? (
-          qs.map((q) => <QuestionCard key={q.id} question={q} />)
+          qs.map((q, i) => (
+            <Reveal key={q.id} delay={Math.min(i, 10) * 60}>
+              <QuestionCard question={q} />
+            </Reveal>
+          ))
         ) : (
           <Empty title="Nothing here yet" body="Every question in this domain has at least one theory." />
         )}
