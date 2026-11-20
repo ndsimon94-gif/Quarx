@@ -1,10 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { DomainIcon, TheoryCard } from '@/components/quarx';
-import { Button, Card, Empty, Page, Pill, Row, Section, T } from '@/components/ui';
-import { C } from '@/constants/theme';
+import { Aura, Avatar } from '@/components/cosmic';
+import { hexA, Reveal } from '@/components/motion';
+import { TheoryCard } from '@/components/quarx';
+import { Button, Card, Empty, Icon, Page, Pill, Row, Section, T, Tap } from '@/components/ui';
+import { C, F } from '@/constants/theme';
 import { getDomain } from '@/data/domains';
 import type { DomainId } from '@/data/types';
 import { plural } from '@/lib/format';
@@ -36,57 +38,73 @@ export default function MindScreen() {
   const domains = [...new Set((mind?.domains ?? []) as DomainId[])];
   const isFollowing = following.includes(key);
 
+  const dmz = pts >= POINTS.dmzThreshold;
+  const hue = dmz ? C.dmz : C.gold;
+
   return (
     <Page narrow>
-      <T v="label" color={C.dmz}>
-        Mind
-      </T>
-      <Row gap={10} style={{ marginTop: 8, flexWrap: 'wrap' }}>
-        <T v="h1">{display}</T>
-        {mind?.founder ? <Pill text="Founder" icon="flame" /> : null}
-        {pts >= POINTS.dmzThreshold ? <Pill text="Dedicated Mind" color={C.dmz} icon="sparkles" /> : null}
-      </Row>
-      <T v="small" style={{ marginTop: 8 }}>
-        {plural(theories.length, 'theory', 'theories')} · {pts} Quark Points
-      </T>
+      <Aura hue={hue} size={560} top={-260} opacity={0.2} />
+      <Reveal style={{ alignItems: 'center' }}>
+        <Avatar name={display} size={130} hue={hue} />
+        <T v="eyebrow" color={hue} style={{ marginTop: 8 }}>
+          {dmz ? 'Dedicated Mind' : 'Mind'}
+        </T>
+        <T v="hero" style={{ marginTop: 8, textAlign: 'center' }}>
+          {display}
+        </T>
+        <Row gap={10} style={{ marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {mind?.founder ? <Pill text="Founder" icon="flame" /> : null}
+          <Text style={styles.meta}>
+            {plural(theories.length, 'theory', 'theories')} · {pts} quark points
+          </Text>
+        </Row>
+      </Reveal>
 
       {domains.length ? (
-        <Row gap={8} style={{ marginTop: 16, flexWrap: 'wrap' }}>
-          {domains.map((d) => {
-            const dom = getDomain(d)!;
-            return (
-              <Row key={d} gap={6}>
-                <DomainIcon domain={dom} size={11} />
-                <T v="small">{dom.name}</T>
-              </Row>
-            );
-          })}
-        </Row>
+        <Reveal delay={150}>
+          <Row gap={10} style={{ marginTop: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {domains.map((d) => {
+              const dom = getDomain(d)!;
+              return (
+                <Tap
+                  key={d}
+                  href={{ pathname: '/domain/[id]', params: { id: d } }}
+                  style={[styles.domain, { borderColor: hexA(dom.hue, 0.35) }]}>
+                  <Icon name={dom.icon as never} size={12} color={dom.hue} />
+                  <Text style={[styles.domainText, { color: dom.hue }]}>{dom.name}</Text>
+                </Tap>
+              );
+            })}
+          </Row>
+        </Reveal>
       ) : null}
 
       {!isMe ? (
-        <Row gap={10} style={{ marginTop: 20 }}>
-          <Button
-            title={isFollowing ? 'Following' : 'Follow'}
-            icon={isFollowing ? 'checkmark' : 'add'}
-            kind={isFollowing ? 'secondary' : 'primary'}
-            small
-            onPress={() => toggleFollow(key)}
-          />
-        </Row>
+        <Reveal delay={250}>
+          <Row gap={10} style={{ marginTop: 24, justifyContent: 'center' }}>
+            <Button
+              title={isFollowing ? 'Following' : 'Follow this mind'}
+              icon={isFollowing ? 'checkmark' : 'add'}
+              kind={isFollowing ? 'secondary' : 'primary'}
+              onPress={() => toggleFollow(key)}
+            />
+          </Row>
+        </Reveal>
       ) : null}
 
-      <Section label="Theories">
-        <View style={{ gap: 12 }}>
-          {theories.map((t) => (
-            <TheoryCard key={t.id} theory={t} showQuestion />
+      <Section label="Their lights" title={plural(theories.length, 'theory', 'theories')}>
+        <View style={{ gap: 14 }}>
+          {theories.map((t, i) => (
+            <Reveal key={t.id} delay={Math.min(i, 8) * 70}>
+              <TheoryCard theory={t} showQuestion />
+            </Reveal>
           ))}
         </View>
       </Section>
 
       {mind && theories.length && theories[0].legacyUrl ? (
-        <Card style={{ marginTop: 24 }}>
-          <T v="small">
+        <Card style={{ marginTop: 28, alignItems: 'center' }}>
+          <T v="small" style={{ textAlign: 'center' }}>
             {display} was part of the original Quarx community (2020–21). If this is you, you’ll be able to
             claim this profile when accounts go live.
           </T>
@@ -95,3 +113,24 @@ export default function MindScreen() {
     </Page>
   );
 }
+
+const styles = StyleSheet.create({
+  meta: {
+    fontFamily: F.inscription,
+    fontSize: 11,
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+    color: C.textDim,
+  },
+  domain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 12,
+    height: 32,
+    borderRadius: 999,
+    borderWidth: 1,
+    backgroundColor: 'rgba(8,9,20,0.4)',
+  },
+  domainText: { fontFamily: F.inscription, fontSize: 10, letterSpacing: 1.8, textTransform: 'uppercase' },
+});

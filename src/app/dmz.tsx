@@ -1,8 +1,22 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { JoinPrompt } from '@/components/quarx';
-import { Button, Card, Grid, Icon, Page, Pill, Row, Section, T, Tap, type IconName } from '@/components/ui';
+import { Avatar, PageHeader, ProgressRing } from '@/components/cosmic';
+import { glass, glow, Reveal } from '@/components/motion';
+import {
+  Button,
+  Card,
+  Grid,
+  Icon,
+  Page,
+  Pill,
+  Row,
+  Section,
+  T,
+  Tap,
+  useWide,
+  type IconName,
+} from '@/components/ui';
 import { C, F } from '@/constants/theme';
 import { catalog } from '@/data/catalog';
 import { excerpt, plural } from '@/lib/format';
@@ -54,7 +68,7 @@ const POWERS: { icon: IconName; title: string; body: string }[] = [
 
 export default function Dmz() {
   const { profile, points, isDmz, myTheories, comments } = useStore();
-  const pct = Math.min(1, points / POINTS.dmzThreshold);
+  const wide = useWide();
 
   const leaders = useMemo(
     () =>
@@ -64,123 +78,165 @@ export default function Dmz() {
         .slice(0, 12),
     [],
   );
+  const podium = leaders.slice(0, 3);
+  const rest = leaders.slice(3);
 
   return (
     <Page>
-      <T v="label" color={C.dmz}>
-        The Dedicated Mindz
-      </T>
-      <T v="h1" style={{ marginTop: 8, maxWidth: 720 }}>
-        A select group of philosophers with a little special influence.
-      </T>
-      <T v="body" color={C.textDim} style={{ marginTop: 12, maxWidth: 680 }}>
-        As you post quality theories and add to the discourse, you earn Quark Points. At {POINTS.dmzThreshold}{' '}
-        points you qualify to become a Dedicated Mind — someone who exemplifies an astute mind and a
-        dedication to truth.
-      </T>
+      <PageHeader
+        eyebrow="The Dedicated Mindz"
+        hue={C.dmz}
+        title="A circle of minds with a little special influence"
+        sub={`Share theories and add to the discourse to earn Quark Points. At ${POINTS.dmzThreshold}, you may join the DMZ — those who exemplify an astute mind and a dedication to truth.`}
+      />
 
-      {/* Your progress */}
-      <Card style={[styles.progressCard, isDmz && { borderColor: 'rgba(199,166,255,0.45)' }]}>
-        {profile ? (
-          <>
-            <Row style={{ justifyContent: 'space-between', flexWrap: 'wrap' }} gap={10}>
-              <View>
-                <T v="label">Your Quark Points</T>
-                <T v="hero" color={isDmz ? C.dmz : C.text} style={{ marginTop: 4 }}>
-                  {points}
-                </T>
-              </View>
-              {isDmz ? (
-                <Pill text="Dedicated Mind" color={C.dmz} icon="sparkles" />
+      {/* Your orbit */}
+      <Reveal delay={300} style={{ marginTop: 34 }}>
+        <View style={[styles.orbitCard, glass, wide && { flexDirection: 'row', gap: 44 }]}>
+          <ProgressRing value={points} max={POINTS.dmzThreshold} size={wide ? 230 : 210}>
+            <Text style={[styles.points, isDmz && { color: C.dmz }]}>{profile ? points : '—'}</Text>
+            <Text style={styles.pointsUnit}>quark points</Text>
+          </ProgressRing>
+          <View style={{ flex: wide ? 1 : undefined, alignItems: wide ? 'flex-start' : 'center', gap: 12 }}>
+            {profile ? (
+              isDmz ? (
+                <>
+                  <Pill text="Dedicated Mind" color={C.dmz} icon="sparkles" />
+                  <T v="h2" style={{ textAlign: wide ? 'left' : 'center' }}>
+                    You are one of the DMZ.
+                  </T>
+                  <T v="body" color={C.textDim} style={{ textAlign: wide ? 'left' : 'center' }}>
+                    New theories reach you first. Thank you for keeping the fire bright.
+                  </T>
+                </>
               ) : (
-                <T v="small">{POINTS.dmzThreshold - points} to go</T>
-              )}
-            </Row>
-            <View style={styles.bar}>
-              <View style={[styles.barFill, { width: `${pct * 100}%` }]} />
-            </View>
-            <T v="small">
-              {plural(myTheories.length, 'theory', 'theories')} × 5 ·{' '}
-              {plural(comments.filter((c) => c.mine).length, 'response')} × 1
-            </T>
-            {!isDmz ? (
-              <Row gap={10} style={{ marginTop: 6, flexWrap: 'wrap' }}>
-                <Button title="Add a theory" small href="/add" icon="create-outline" />
-                <Button title="Find a question" small kind="secondary" href="/explore" />
-              </Row>
-            ) : null}
-          </>
-        ) : (
-          <JoinPrompt what="start earning Quark Points" />
-        )}
-      </Card>
-
-      <Section label="Earning" title="How Quark Points work">
-        <Grid max={3}>
-          {EARN.map((e) => (
-            <Card key={e.title} style={{ gap: 8, flex: 1 }}>
-              <Row style={{ justifyContent: 'space-between' }}>
-                <Icon name={e.icon} size={20} color={C.ember} />
-                <T v="h2" color={C.ember}>
-                  {e.pts}
+                <>
+                  <T v="label" color={C.dmz}>
+                    {POINTS.dmzThreshold - points} points to the DMZ
+                  </T>
+                  <T v="h2" style={{ textAlign: wide ? 'left' : 'center' }}>
+                    Your orbit is {Math.round((points / POINTS.dmzThreshold) * 100)}% complete.
+                  </T>
+                  <T v="small" style={{ textAlign: wide ? 'left' : 'center' }}>
+                    {plural(myTheories.length, 'theory', 'theories')} × 5 ·{' '}
+                    {plural(comments.filter((c) => c.mine).length, 'response')} × 1
+                  </T>
+                  <Row
+                    gap={10}
+                    style={{
+                      marginTop: 6,
+                      flexWrap: 'wrap',
+                      justifyContent: wide ? 'flex-start' : 'center',
+                    }}>
+                    <Button title="Add a theory" small href="/add" icon="create-outline" />
+                    <Button title="Find a question" small kind="secondary" href="/explore" />
+                  </Row>
+                </>
+              )
+            ) : (
+              <>
+                <T v="h2" style={{ textAlign: wide ? 'left' : 'center' }}>
+                  Begin your orbit.
                 </T>
-              </Row>
-              <T v="h3">{e.title}</T>
-              <T v="small">{e.body}</T>
-            </Card>
+                <T v="body" color={C.textDim} style={{ textAlign: wide ? 'left' : 'center' }}>
+                  Create a free account to start earning Quark Points.
+                </T>
+                <Button title="Join Quarx" href="/me" icon="person-add-outline" style={{ marginTop: 4 }} />
+              </>
+            )}
+          </View>
+        </View>
+      </Reveal>
+
+      <Section label="How light is earned" title="Quark Points">
+        <Grid max={3}>
+          {EARN.map((e, i) => (
+            <Reveal key={e.title} delay={i * 100}>
+              <Card style={{ gap: 10, minHeight: 190 }}>
+                <Text style={styles.earnPts}>{e.pts}</Text>
+                <Row gap={8}>
+                  <Icon name={e.icon} size={16} color={C.gold} />
+                  <T v="h3">{e.title}</T>
+                </Row>
+                <T v="small">{e.body}</T>
+              </Card>
+            </Reveal>
           ))}
         </Grid>
       </Section>
 
       <Section label="Influence" title="What the DMZ does">
         <Grid max={2}>
-          {POWERS.map((p) => (
-            <Card key={p.title} style={{ gap: 8, flex: 1 }}>
-              <Icon name={p.icon} size={20} color={C.dmz} />
-              <T v="h3">{p.title}</T>
-              <T v="small">{p.body}</T>
-            </Card>
+          {POWERS.map((p, i) => (
+            <Reveal key={p.title} delay={i * 90}>
+              <Card style={{ gap: 10, flexDirection: 'row', alignItems: 'flex-start' }}>
+                <View style={[styles.power, glow(C.dmz, 22, 0.35)]}>
+                  <Icon name={p.icon} size={19} color={C.dmz} />
+                </View>
+                <View style={{ flex: 1, gap: 6 }}>
+                  <T v="h3">{p.title}</T>
+                  <T v="small">{p.body}</T>
+                </View>
+              </Card>
+            </Reveal>
           ))}
         </Grid>
       </Section>
 
       <Section label="Founding minds" title="The original DMZ">
-        <T v="small" style={{ marginTop: -6, marginBottom: 14 }}>
-          Points earned on the original Quarx (2020–21), using the original rule of 5 per theory.
+        <T v="body" color={C.textDim} style={{ marginTop: -8, marginBottom: 26 }}>
+          Earned on the original Quarx (2020–21), at 5 points per theory.
         </T>
-        <Card style={{ padding: 0, overflow: 'hidden' }}>
-          {leaders.map((m, i) => (
+        <View style={[styles.podium, !wide && { flexDirection: 'column', alignItems: 'center' }]}>
+          {(wide ? [podium[1], podium[0], podium[2]] : podium).map((m) => {
+            if (!m) return null;
+            const place = leaders.indexOf(m) + 1;
+            return (
+              <Tap
+                key={m.key}
+                href={{ pathname: '/mind/[key]', params: { key: m.key } }}
+                style={[styles.podiumItem, wide && place === 1 && { marginTop: -28 }]}>
+                <Avatar name={m.display} size={place === 1 ? 110 : 88} hue={place === 1 ? C.gold : C.dmz} />
+                <Text style={styles.place}>{['First', 'Second', 'Third'][place - 1]} light</Text>
+                <T v="h3" style={{ textAlign: 'center' }}>
+                  {m.display}
+                </T>
+                <Text style={styles.podiumPts}>
+                  {m.points} pts · {plural(m.theoryIds.length, 'theory', 'theories')}
+                </Text>
+              </Tap>
+            );
+          })}
+        </View>
+        <Card style={{ padding: 0, marginTop: 22 }}>
+          {rest.map((m, i) => (
             <Tap
               key={m.key}
               href={{ pathname: '/mind/[key]', params: { key: m.key } }}
-              style={(s) => [
+              style={(st) => [
                 styles.leader,
                 i > 0 && { borderTopWidth: 1, borderTopColor: C.line },
-                (s as { hovered?: boolean }).hovered && {
-                  backgroundColor: C.cardHover,
-                },
+                (st as { hovered?: boolean }).hovered && { backgroundColor: C.cardHover },
               ]}>
-              <T v="small" style={{ width: 22, fontFamily: F.uiSemi }} color={C.textFaint}>
-                {i + 1}
-              </T>
+              <Text style={styles.rank}>{String(i + 4).padStart(2, '0')}</Text>
+              <View
+                style={[
+                  styles.leaderStar,
+                  m.points >= POINTS.dmzThreshold && { backgroundColor: C.dmz },
+                  glow(m.points >= POINTS.dmzThreshold ? C.dmz : C.gold, 12, 0.8),
+                ]}
+              />
               <View style={{ flex: 1 }}>
                 <Row gap={8}>
                   <T v="ui" style={{ fontFamily: F.uiSemi }}>
                     {m.display}
                   </T>
                   {m.founder ? <Pill text="Founder" icon="flame" /> : null}
-                  {m.points >= POINTS.dmzThreshold ? <Pill text="DMZ" color={C.dmz} icon="sparkles" /> : null}
                 </Row>
-                <T v="small" color={C.textFaint}>
-                  {plural(m.theoryIds.length, 'theory', 'theories')}
-                </T>
               </View>
-              <T
-                v="ui"
-                color={m.points >= POINTS.dmzThreshold ? C.dmz : C.textDim}
-                style={{ fontFamily: F.uiSemi }}>
+              <Text style={[styles.leaderPts, m.points >= POINTS.dmzThreshold && { color: C.dmz }]}>
                 {m.points}
-              </T>
+              </Text>
             </Tap>
           ))}
         </Card>
@@ -255,19 +311,53 @@ function ReviewQueue() {
 }
 
 const styles = StyleSheet.create({
-  progressCard: { marginTop: 28, gap: 12, padding: 24 },
-  bar: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    overflow: 'hidden',
-  },
-  barFill: { height: 8, borderRadius: 4, backgroundColor: C.dmz },
-  leader: {
-    flexDirection: 'row',
+  orbitCard: {
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    padding: 30,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(199,166,255,0.25)',
+    backgroundColor: 'rgba(16,12,30,0.4)',
+    gap: 18,
   },
+  points: { fontFamily: F.displayLight, fontSize: 64, lineHeight: 68, color: C.text },
+  pointsUnit: {
+    fontFamily: F.inscription,
+    fontSize: 10,
+    letterSpacing: 2.6,
+    textTransform: 'uppercase',
+    color: C.textFaint,
+  },
+  earnPts: { fontFamily: F.displayLight, fontSize: 64, lineHeight: 66, color: C.gold },
+  power: {
+    width: 44,
+    height: 44,
+    borderRadius: 44,
+    borderWidth: 1,
+    borderColor: 'rgba(199,166,255,0.4)',
+    backgroundColor: 'rgba(199,166,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  podium: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end', gap: 36 },
+  podiumItem: { alignItems: 'center', gap: 6, width: 200 },
+  place: {
+    fontFamily: F.inscription,
+    fontSize: 10,
+    letterSpacing: 2.6,
+    textTransform: 'uppercase',
+    color: C.gold,
+    marginTop: 6,
+  },
+  podiumPts: {
+    fontFamily: F.inscription,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
+    color: C.textFaint,
+  },
+  leader: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingVertical: 14 },
+  rank: { fontFamily: F.inscription, fontSize: 12, letterSpacing: 1.6, color: C.textFaint, width: 24 },
+  leaderStar: { width: 7, height: 7, borderRadius: 7, backgroundColor: C.gold },
+  leaderPts: { fontFamily: F.displayLight, fontSize: 24, color: C.textDim },
 });

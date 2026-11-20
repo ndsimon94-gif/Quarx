@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, type Href } from 'expo-router';
-import { forwardRef, type ComponentProps, type ReactNode } from 'react';
+import { forwardRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   Platform,
   Pressable,
@@ -165,21 +165,24 @@ export function Section({
   style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <View style={[{ marginTop: 40 }, style]}>
+    <View style={[{ marginTop: 64 }, style]}>
       {(title || label) && (
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'flex-end',
             justifyContent: 'space-between',
-            marginBottom: 14,
+            marginBottom: 20,
             gap: 12,
           }}>
           <View style={{ flex: 1 }}>
             {label ? (
-              <T v="label" style={{ marginBottom: 4 }}>
-                {label}
-              </T>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <View style={{ width: 22, height: 1, backgroundColor: 'rgba(246,213,142,0.55)' }} />
+                <T v="label" color={C.gold}>
+                  {label}
+                </T>
+              </View>
             ) : null}
             {title ? <T v="h2">{title}</T> : null}
           </View>
@@ -376,7 +379,8 @@ export function Segmented<K extends string>({
 export const Field = forwardRef<
   TextInput,
   ComponentProps<typeof TextInput> & { label?: string; hint?: string }
->(function Field({ label, hint, style, multiline, ...rest }, ref) {
+>(function Field({ label, hint, style, multiline, onFocus, onBlur, ...rest }, ref) {
+  const [focused, setFocused] = useState(false);
   return (
     <View style={{ marginBottom: 18 }}>
       {label ? (
@@ -389,8 +393,19 @@ export const Field = forwardRef<
         placeholderTextColor={C.textFaint}
         multiline={multiline}
         {...rest}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
         style={[
           styles.input,
+          glass,
+          focused && { borderColor: C.emberLine, backgroundColor: 'rgba(242,166,90,0.05)' },
+          focused && glowStyle(C.ember, 24, 0.2),
           multiline && {
             minHeight: 140,
             textAlignVertical: 'top',
@@ -436,17 +451,22 @@ export function Empty({
   action?: ReactNode;
 }) {
   return (
-    <View style={[styles.card, { alignItems: 'center', paddingVertical: 36, gap: 8 }]}>
-      <Icon name={icon} size={26} color={C.ember} />
-      <T v="h3" style={{ textAlign: 'center' }}>
+    <View style={[styles.card, glass, { alignItems: 'center', paddingVertical: 44, gap: 10 }]}>
+      <View style={[styles.emptyIcon, glowStyle(C.gold, 30, 0.35)]}>
+        <Icon name={icon} size={24} color={C.gold} />
+      </View>
+      <T v="h3" style={{ textAlign: 'center', marginTop: 6 }}>
         {title}
       </T>
       {body ? (
-        <T v="small" style={{ textAlign: 'center', maxWidth: 380 }}>
+        <T
+          v="body"
+          color={C.textDim}
+          style={{ textAlign: 'center', maxWidth: 420, fontSize: 16, lineHeight: 25 }}>
           {body}
         </T>
       ) : null}
-      {action ? <View style={{ marginTop: 8 }}>{action}</View> : null}
+      {action ? <View style={{ marginTop: 10 }}>{action}</View> : null}
     </View>
   );
 }
@@ -461,6 +481,16 @@ export function Pill({ text, color = C.ember, icon }: { text: string; color?: st
 }
 
 const styles = StyleSheet.create({
+  emptyIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 54,
+    borderWidth: 1,
+    borderColor: 'rgba(246,213,142,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(246,213,142,0.06)',
+  },
   card: {
     backgroundColor: C.card,
     borderColor: C.line,
@@ -526,12 +556,19 @@ const styles = StyleSheet.create({
     fontFamily: F.body,
     fontSize: 17,
     color: C.text,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(10,11,24,0.5)',
     borderWidth: 1,
     borderColor: C.line,
-    borderRadius: S.radiusSm,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    ...Platform.select({
+      web: {
+        transitionProperty: 'border-color, box-shadow, background-color',
+        transitionDuration: '250ms',
+      } as TextStyle,
+      default: {},
+    }),
   },
   pill: {
     flexDirection: 'row',

@@ -1,14 +1,34 @@
 import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { SignUpForm } from '@/components/account';
+import { Aura, Avatar, Eclipse, PageHeader } from '@/components/cosmic';
+import { Reveal } from '@/components/motion';
 import { TheoryCard } from '@/components/quarx';
-import { Button, Card, Chip, Empty, Page, Pill, Row, Section, Segmented, T } from '@/components/ui';
-import { C } from '@/constants/theme';
+import {
+  Button,
+  Card,
+  Chip,
+  Empty,
+  Icon,
+  Page,
+  Pill,
+  Row,
+  Segmented,
+  T,
+  type IconName,
+} from '@/components/ui';
+import { C, F } from '@/constants/theme';
 import { formatDate, plural } from '@/lib/format';
 import { legacyMinds, POINTS, useStore } from '@/lib/store';
 
 type Tab = 'theories' | 'saved' | 'following' | 'connections';
+
+const PERKS: [IconName, string][] = [
+  ['eye-off-outline', 'Post anonymously'],
+  ['star-outline', 'Rate & respond'],
+  ['sparkles-outline', 'Earn your way into the DMZ'],
+];
 
 export default function Me() {
   const store = useStore();
@@ -31,19 +51,28 @@ export default function Me() {
   if (!profile) {
     return (
       <Page narrow>
-        <T v="label" color={C.ember}>
-          Join Quarx
-        </T>
-        <T v="h1" style={{ marginTop: 8 }}>
-          Bring your questions. Leave with better ones.
-        </T>
-        <T v="body" color={C.textDim} style={{ marginTop: 12, marginBottom: 28 }}>
-          With an account you can post theories (as yourself, your username, or anonymously), rate and
-          respond, save theories, follow minds you admire, and earn your way into the DMZ.
-        </T>
-        <Card style={{ padding: 24 }}>
-          <SignUpForm />
-        </Card>
+        <PageHeader
+          eyebrow="Join the gathering"
+          hue={C.ember}
+          visual={<Eclipse size={170} />}
+          title="Bring your questions. Leave with better ones."
+          sub="Post theories as yourself, your username, or anonymously. Rate, respond, save, follow the minds you admire — and earn your way into the DMZ."
+        />
+        <Reveal delay={400} style={{ marginTop: 30 }}>
+          <Card style={{ padding: 28, borderColor: 'rgba(242,166,90,0.22)' }}>
+            <SignUpForm />
+          </Card>
+        </Reveal>
+        <Reveal delay={600}>
+          <Row gap={22} style={{ marginTop: 26, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {PERKS.map(([icon, text]) => (
+              <Row key={text} gap={8}>
+                <Icon name={icon} size={14} color={C.gold} />
+                <Text style={styles.perk}>{text}</Text>
+              </Row>
+            ))}
+          </Row>
+        </Reveal>
       </Page>
     );
   }
@@ -52,41 +81,48 @@ export default function Me() {
 
   return (
     <Page narrow>
-      <Row
-        style={{
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-        }}
-        gap={14}>
-        <View>
-          <T v="h1">{profile.displayName}</T>
-          <Row gap={8} style={{ marginTop: 6 }}>
-            <T v="small">
-              @{profile.username} · joined {formatDate(profile.joined)}
-            </T>
-            {isDmz ? <Pill text="DMZ" color={C.dmz} icon="sparkles" /> : null}
-          </Row>
-        </View>
-        <Card
-          href="/dmz"
-          style={{
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            alignItems: 'flex-end',
-          }}>
-          <T v="h2" color={isDmz ? C.dmz : C.ember}>
-            {points}
-          </T>
-          <T v="small">{isDmz ? 'Quark Points' : `of ${POINTS.dmzThreshold} to the DMZ`}</T>
-        </Card>
-      </Row>
+      <Reveal style={{ alignItems: 'center' }}>
+        <Aura hue={isDmz ? C.dmz : C.gold} size={560} top={-260} opacity={0.2} />
+        <Avatar name={profile.displayName} size={120} hue={isDmz ? C.dmz : C.gold} />
+        <T v="hero" style={{ marginTop: 10, textAlign: 'center' }}>
+          {profile.displayName}
+        </T>
+        <Row gap={10} style={{ marginTop: 8 }}>
+          <Text style={styles.handle}>@{profile.username}</Text>
+          <Text style={styles.handle}>·</Text>
+          <Text style={styles.handle}>since {formatDate(profile.joined)}</Text>
+          {isDmz ? <Pill text="DMZ" color={C.dmz} icon="sparkles" /> : null}
+        </Row>
+      </Reveal>
 
-      <View style={{ marginTop: 22 }}>
-        <T v="label" style={{ marginBottom: 8 }}>
+      <Reveal delay={200}>
+        <Row gap={12} style={{ marginTop: 28, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {[
+            [String(points), 'quark points', '/dmz'],
+            [String(myTheories.length), myTheories.length === 1 ? 'theory' : 'theories', null],
+            [String(saved.length), 'saved', null],
+            [String(following.length), 'following', null],
+          ].map(([n, label, href]) => (
+            <Card key={label} href={href ? '/dmz' : undefined} style={styles.stat}>
+              <Text style={[styles.statNum, label === 'quark points' && { color: isDmz ? C.dmz : C.gold }]}>
+                {n}
+              </Text>
+              <Text style={styles.statLabel}>{label}</Text>
+            </Card>
+          ))}
+        </Row>
+        {!isDmz ? (
+          <T v="small" style={{ textAlign: 'center', marginTop: 12 }}>
+            {POINTS.dmzThreshold - points} points until you may join the DMZ
+          </T>
+        ) : null}
+      </Reveal>
+
+      <View style={{ marginTop: 34, alignItems: 'center' }}>
+        <T v="label" style={{ marginBottom: 10 }}>
           By default, post as
         </T>
-        <Row gap={8} style={{ flexWrap: 'wrap' }}>
+        <Row gap={8} style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
           <Chip
             label={profile.displayName}
             active={profile.defaultMode === 'name'}
@@ -106,7 +142,7 @@ export default function Me() {
         </Row>
       </View>
 
-      <View style={{ marginTop: 30 }}>
+      <View style={{ marginTop: 40, alignItems: 'center' }}>
         <Segmented
           value={tab}
           onChange={setTab}
@@ -148,9 +184,16 @@ export default function Me() {
             following.map((k) => {
               const m = minds.get(k);
               return (
-                <Card key={k} href={{ pathname: '/mind/[key]', params: { key: k } }}>
-                  <T v="h3">{m?.display ?? k}</T>
-                  <T v="small">{m ? plural(m.theoryIds.length, 'theory', 'theories') : ''}</T>
+                <Card
+                  key={k}
+                  href={{ pathname: '/mind/[key]', params: { key: k } }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                  <Avatar name={m?.display ?? k} size={52} />
+                  <View style={{ flex: 1 }}>
+                    <T v="h3">{m?.display ?? k}</T>
+                    <T v="small">{m ? plural(m.theoryIds.length, 'theory', 'theories') : ''}</T>
+                  </View>
+                  <Icon name="arrow-forward" size={16} color={C.textFaint} />
                 </Card>
               );
             })
@@ -184,11 +227,36 @@ export default function Me() {
           ))}
       </View>
 
-      <Section label="Account">
-        <Row gap={10} style={{ flexWrap: 'wrap' }}>
-          <Button title="Sign out" kind="secondary" small onPress={signOut} />
-        </Row>
-      </Section>
+      <Row style={{ marginTop: 56, justifyContent: 'center' }}>
+        <Button title="Sign out" kind="ghost" small icon="log-out-outline" onPress={signOut} />
+      </Row>
     </Page>
   );
 }
+
+const styles = StyleSheet.create({
+  perk: {
+    fontFamily: F.inscription,
+    fontSize: 10.5,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: C.textDim,
+  },
+  handle: {
+    fontFamily: F.inscription,
+    fontSize: 11,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: C.textDim,
+  },
+  stat: { alignItems: 'center', minWidth: 120, paddingVertical: 16 },
+  statNum: { fontFamily: F.displayLight, fontSize: 40, lineHeight: 44, color: C.text },
+  statLabel: {
+    fontFamily: F.inscription,
+    fontSize: 9.5,
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+    color: C.textFaint,
+    marginTop: 2,
+  },
+});

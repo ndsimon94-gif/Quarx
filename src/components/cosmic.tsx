@@ -9,7 +9,15 @@ import {
   useWindowDimensions,
   type ViewStyle,
 } from 'react-native';
-import Svg, { Circle, Defs, Line, RadialGradient, Stop } from 'react-native-svg';
+import type { ReactNode } from 'react';
+import Svg, {
+  Circle,
+  Defs,
+  Line,
+  LinearGradient as SvgLinearGradient,
+  RadialGradient,
+  Stop,
+} from 'react-native-svg';
 
 import { C, F } from '@/constants/theme';
 import { catalog } from '@/data/catalog';
@@ -17,7 +25,7 @@ import type { Domain, DomainId } from '@/data/types';
 import { plural } from '@/lib/format';
 import { useStore } from '@/lib/store';
 
-import { glow, hexA, Motion } from './motion';
+import { glow, hexA, Motion, Reveal } from './motion';
 import { Icon, T } from './ui';
 
 // ---------------------------------------------------------------- Constellation map
@@ -296,6 +304,156 @@ export function Aura({
         </Defs>
         <Circle cx={size / 2} cy={size / 2} r={size / 2} fill={`url(#${id})`} />
       </Svg>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------- Page header
+/** Centered page opening: optional visual, inscription eyebrow, large title, and a line of context. */
+export function PageHeader({
+  eyebrow,
+  title,
+  sub,
+  hue = C.gold,
+  visual,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  sub?: string;
+  hue?: string;
+  visual?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <View style={{ alignItems: 'center', marginTop: 6, marginBottom: 12 }}>
+      <Aura hue={hue} size={560} top={-260} opacity={0.22} />
+      {visual ? <Reveal style={{ marginBottom: 14 }}>{visual}</Reveal> : null}
+      <Reveal delay={visual ? 150 : 0} style={{ alignItems: 'center' }}>
+        <T v="eyebrow" color={hue}>
+          {eyebrow}
+        </T>
+        <T v="hero" style={{ textAlign: 'center', marginTop: 12, maxWidth: 820 }}>
+          {title}
+        </T>
+        {sub ? (
+          <T
+            v="body"
+            color={C.textDim}
+            style={{ textAlign: 'center', marginTop: 14, maxWidth: 620, fontSize: 19, lineHeight: 30 }}>
+            {sub}
+          </T>
+        ) : null}
+      </Reveal>
+      {children ? (
+        <Reveal delay={350} style={{ alignItems: 'center', marginTop: 22 }}>
+          {children}
+        </Reveal>
+      ) : null}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------- Progress ring
+/** An orbit that fills as you progress (used for Quark Points). */
+export function ProgressRing({
+  value,
+  max,
+  size = 200,
+  color = C.dmz,
+  children,
+}: {
+  value: number;
+  max: number;
+  size?: number;
+  color?: string;
+  children?: ReactNode;
+}) {
+  const stroke = 3;
+  const r = size / 2 - 14;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(1, value / max));
+  const angle = pct * 2 * Math.PI - Math.PI / 2;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
+        <Defs>
+          <SvgLinearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#fff2d8" />
+            <Stop offset="1" stopColor={color} />
+          </SvgLinearGradient>
+          <RadialGradient id="ringGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0.6" stopColor={color} stopOpacity="0" />
+            <Stop offset="0.85" stopColor={color} stopOpacity="0.14" />
+            <Stop offset="1" stopColor={color} stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Circle cx={size / 2} cy={size / 2} r={size / 2} fill="url(#ringGlow)" />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke="rgba(255,240,220,0.1)"
+          strokeWidth={stroke}
+          fill="none"
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r + 8}
+          stroke="rgba(255,240,220,0.08)"
+          strokeWidth={0.8}
+          strokeDasharray="1 6"
+          fill="none"
+        />
+        {pct > 0 ? (
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            stroke="url(#ring)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={`${circ * pct} ${circ}`}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        ) : null}
+        <Circle
+          cx={size / 2 + r * Math.cos(angle)}
+          cy={size / 2 + r * Math.sin(angle)}
+          r={5}
+          fill="#fffaf0"
+        />
+      </Svg>
+      {children}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------- Avatar
+/** A person as a small star-orb with their initial. */
+export function Avatar({ name, size = 88, hue = C.gold }: { name: string; size?: number; hue?: string }) {
+  const initial = (name.replace(/^@/, '').trim()[0] ?? '✦').toUpperCase();
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Aura hue={hue} size={size * 2} top={-size / 2} opacity={0.35} />
+      <View
+        style={[
+          {
+            width: size * 0.78,
+            height: size * 0.78,
+            borderRadius: size,
+            borderWidth: 1,
+            borderColor: hexA(hue, 0.6),
+            backgroundColor: 'rgba(8,9,20,0.7)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          glow(hue, 30, 0.35),
+        ]}>
+        <Text style={{ fontFamily: F.inscription, fontSize: size * 0.32, color: hue }}>{initial}</Text>
+      </View>
     </View>
   );
 }
